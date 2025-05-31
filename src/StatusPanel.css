@@ -1,0 +1,11 @@
+@keyframes breathe {
+    0% {
+        fill: hsl(0 100% 36%);
+    }
+    50% {
+        fill: hsl(0 100% 60%);
+    }
+    100% {
+        fill: hsl(0 100% 36%);
+    }
+}
