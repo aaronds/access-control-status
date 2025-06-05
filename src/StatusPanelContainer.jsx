@@ -7,14 +7,18 @@ export default function StatusPanelContainer(props) {
     const [led, setLed] = useState("off");
     const [isOn, setIsOn] = useState(false);
     const [timeRemaining, setTimeRemaining] = useState(1);
+    const [power, setPower] = useState(0);
+    const [freq, setFreq] = useState(0.0);
 
     const eventRef = props.eventRef;
     const id = props.id;
     const name = props.name;
 
     useEffect(function () {
+        let offlineTimer = null;
         function modeUpdate(mode) {
-            let modeText = mode.mode.replace(/^CONTROLLER_MODE_/,"");
+            let modeText = mode.mode.replace(/^CONTROLLER_MODE_/,"").replace(/_/, " ");
+
             setStatus(modeText);
 
             switch(mode.mode) {
@@ -38,7 +42,6 @@ export default function StatusPanelContainer(props) {
                 setIsOn(mode.mode == 'CONTROLLER_MODE_UNLOCKED');
             }
 
-
             if (mode.mode == "CONTROLLER_MODE_UNLOCKED" && mode.unlockedTimeout > 0 && mode.timeRemaining < mode.unlockedTimeout) {
                 setTimeRemaining(mode.timeRemaining / mode.unlockedTimeout);
             } else {
@@ -46,10 +49,29 @@ export default function StatusPanelContainer(props) {
             }
         }
 
+        function powerUpdate(power) {
+            setIsOn(power.isOn);
+            if (power.zx > 1) {
+                let freq = (power.zx / (power.time / 1000000)) / 2;
+                setFreq(freq);
+            } else {
+                setFreq(0.0);
+            }
+
+            setPower(power.power);
+        }
+
         eventRef.current.on(id + ".mode", modeUpdate);
+        eventRef.current.on(id + ".power", powerUpdate);
+        offlineTimer = setTimeout(function () {
+            setLed("offline");
+            setStatus("OFFLINE");
+        },30100);
 
         return function () {
             eventRef.current.off(id + ".mode", modeUpdate);
+            eventRef.current.off(id + ".power", powerUpdate);
+            clearTimeout(offlineTimer);
         }
     }, [status, led, isOn, timeRemaining]);
 
@@ -58,6 +80,8 @@ export default function StatusPanelContainer(props) {
         name={name || id}
         led={led}
         isOn={isOn}
-        timeRemining={timeRemaining}
+        timeRemaining={timeRemaining}
+        power={power}
+        freq={freq}
         status={status} />
 }

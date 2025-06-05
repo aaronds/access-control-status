@@ -5,7 +5,7 @@ import screwA from './assets/Screw_a.svg';
 import screwB from './assets/Screw_b.svg';
 
 export default function StatusPanelDisplay(props) {
-    let { id, name, led, isOn, timeRemaining, status } = props;
+    let { id, name, led, isOn, timeRemaining, status, power, freq } = props;
 
     let ledStyle = {fill : "black"};
 
@@ -21,19 +21,30 @@ export default function StatusPanelDisplay(props) {
         case "off":
             ledStyle = {fill : "hsl(0 100% 36%)"}
             break;
+
+        case "offline":
+            ledStyle = {fill : "hsl(0 100% 0%)"}
+            break;
         default:
             break;
     }
 
+    var timerCircleRadius = 7;
+    var timerCircleLength = Math.PI * 2 * timerCircleRadius;
+    var timerCircleOn = Math.min(timeRemaining, 1) * timerCircleLength;
+    var timerCircleOff = timerCircleLength - timerCircleOn;
+
+
+
     return <Col style={{borderRadius: "3px", border: "1px solid #bbb", background: "#ddd"}} className="mx-1">
         <Row>
-            <Col xs={2}>
+            <Col className="d-none d-md-block" md={2}>
                 <img src={screwB} style={{"width" : "1em", rotate: "-45deg"}} />
             </Col>
-            <Col xs={8}>
+            <Col xs={12} md={8}>
                 <h3 style={{fontFamily: '"Anybody", sans-serif', fontWeight: "300", textTransform: "uppercase"}}>{name}</h3>
             </Col>
-            <Col xs={2}>
+            <Col className="d-none d-md-block" md={2}>
                 <img src={screwB} style={{"width" : "1em", rotate: "45deg"}}/>
             </Col>
         </Row>
@@ -52,8 +63,9 @@ export default function StatusPanelDisplay(props) {
         </Row>
         <Row>
             <Col xs={12}>
-                <svg width = "100%" viewBox="0 0 50 20.2" xmlns="http://www.w3.org/2000/svg">
-                    <circle cx="25" cy="10.1" r="10.1" fill="#424242" />
+                <svg width = "90" viewBox="0 0 20.2 20.2" xmlns="http://www.w3.org/2000/svg" style={{cursor: "no-allowed"}} className="d-none d-md-inline">
+                    <circle cx="10.1" cy="10.1" r="10.1" fill="#424242" />
+                    {timeRemaining < 1 ? <circle cx="10.1" cy="10.1" r="7" fill="none" stroke="#FCEF91" stroke-dasharray={timerCircleOn + " " + timerCircleOff} stroke-linecap="round"/> : null }
                 </svg>
                 <p>{status}</p>
             </Col>
@@ -66,12 +78,13 @@ export default function StatusPanelDisplay(props) {
             </Col>
         </Row>
         <Row style={{paddingBottom: "0.25em"}}>
-            <Col xs={2}>
+            <Col className="d-none d-md-block" md={2}>
                 <img src={screwB} style={{"width" : "1em", rotate: "45deg"}} />
             </Col>
-            <Col xs={8}>
+            <Col xs={12} md={8}>
+                {power > 0.01 ? power + "Kw" : null } {freq > 0.01 ? freq.toFixed(2) + "Hz" : null}
             </Col>
-            <Col xs={2}>
+            <Col className="d-none d-md-block" md={2}>
                 <img src={screwB} style={{"width" : "1em", rotate: "-45deg"}}/>
             </Col>
         </Row>

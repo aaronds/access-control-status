@@ -19,14 +19,6 @@ let initialDevices = [
     {
         id : "30c6f7f4fe6c",
         name : "Development"
-    },
-    {
-        id : "30c6f7f4fe6d",
-        name : "Printer A"
-    },
-    {
-        id : "30c6f7f4fe6e",
-        name : "Printer B"
     }
 ]
 
@@ -89,7 +81,7 @@ function App() {
         mqttClient.onMessageArrived = function (message) {
             try {
                 let topic = message.topic;
-                let messageType = topic.split("/").pop();
+                let messageType = topic.split("/")[2];
 
                 switch(messageType) {
                     case "power":
@@ -128,9 +120,15 @@ function App() {
             }
         }
 
+        mqttClient.onConnectionLost = function (e) {
+            console.warn(e, e.stack);
+            setReady(false);
+            setLoading(false);
+        }
+
         if (mqttClient) {
-            await mqttClient.subscribe("acs/message/power");
-            await mqttClient.subscribe("acs/message/mode");
+            await mqttClient.subscribe("acs/message/power/#");
+            await mqttClient.subscribe("acs/message/mode/#");
             setReady(true);
         }
 
@@ -153,7 +151,7 @@ function App() {
                         <Form.Label>Password</Form.Label>
                         <Form.Control type="password" placeholder="Password" value={secret} onChange={onChangeSecret} />
                     </Form.Group>
-                    <Button variant="primary" type="submit" onClick={onClickConnect}>Connect</Button>
+                    <Button variant="primary" type="submit" onClick={onClickConnect} disabled={loading}>Connect</Button>
                 </>
             }
             </>

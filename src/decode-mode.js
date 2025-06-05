@@ -29,11 +29,11 @@ export default function decodeModeByVersion(message) {
         res.timeRemaining = dv.getUint32(offset, true);
         offset += 4;
 
-        res.unlockTimeout = dv.getUint32(offset, true);
+        res.unlockedTimeout = dv.getUint32(offset, true);
         offset += 4;
 
         res.mode = decodeMode(dv.getUint8(offset));
-        offset += 1;
+        offset += 4;
 
         let flags = dv.getUint8(offset);
 
