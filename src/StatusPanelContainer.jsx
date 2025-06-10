@@ -16,6 +16,12 @@ export default function StatusPanelContainer(props) {
 
     useEffect(function () {
         let offlineTimer = null;
+
+        function onOffline() {
+            setLed("offline");
+            setStatus("OFFLINE");
+        }
+
         function modeUpdate(mode) {
             let modeText = mode.mode.replace(/^CONTROLLER_MODE_/,"").replace(/_/, " ");
 
@@ -47,7 +53,13 @@ export default function StatusPanelContainer(props) {
             } else {
                 setTimeRemaining(1);
             }
+
+            if (offlineTimer) {
+                clearTimeout(offlineTimer);
+                offlineTimer = setTimeout(onOffline,30100);
+            }
         }
+
 
         function powerUpdate(power) {
             setIsOn(power.isOn);
@@ -58,15 +70,16 @@ export default function StatusPanelContainer(props) {
                 setFreq(0.0);
             }
 
+            if (offlineTimer) {
+                clearTimeout(offlineTimer);
+                offlineTimer = setTimeout(onOffline,30100);
+            }
             setPower(power.power);
         }
 
         eventRef.current.on(id + ".mode", modeUpdate);
         eventRef.current.on(id + ".power", powerUpdate);
-        offlineTimer = setTimeout(function () {
-            setLed("offline");
-            setStatus("OFFLINE");
-        },30100);
+        offlineTimer = setTimeout(onOffline,30100);
 
         return function () {
             eventRef.current.off(id + ".mode", modeUpdate);
