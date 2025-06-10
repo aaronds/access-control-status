@@ -33,6 +33,7 @@ export default function StatusPanelDisplay(props) {
     var timerCircleLength = Math.PI * 2 * timerCircleRadius;
     var timerCircleOn = Math.min(timeRemaining, 1) * timerCircleLength;
     var timerCircleOff = timerCircleLength - timerCircleOn;
+    var timerCircleOffset = 0.75 * timerCircleLength;
 
 
 
@@ -63,9 +64,9 @@ export default function StatusPanelDisplay(props) {
         </Row>
         <Row>
             <Col xs={12}>
-                <svg width = "90" viewBox="0 0 20.2 20.2" xmlns="http://www.w3.org/2000/svg" style={{cursor: "no-allowed"}} className="d-none d-md-inline">
+                <svg width = "90" viewBox="0 0 20.2 20.2" xmlns="http://www.w3.org/2000/svg" style={{cursor: "not-allowed"}} className="d-none d-md-inline">
                     <circle cx="10.1" cy="10.1" r="10.1" fill="#424242" />
-                    {timeRemaining < 1 ? <circle cx="10.1" cy="10.1" r="7" fill="none" stroke="#FCEF91" stroke-dasharray={timerCircleOn + " " + timerCircleOff} stroke-linecap="round"/> : null }
+                    {timeRemaining < 1 ? <circle cx="10.1" cy="10.1" r="7" fill="none" stroke="#FCEF91" stroke-dasharray={timerCircleOn + " " + timerCircleOff} stroke-offset={timerCircleOffset} stroke-linecap="round"/> : null }
                 </svg>
                 <p>{status}</p>
             </Col>
