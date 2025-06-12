@@ -158,7 +158,7 @@ function App() {
                 <Container>
                     <Row className="gx-0">
                         {(devices || []).map(function (device) {
-                            return <StatusPanelContainer key={device.id} id={device.id} name={device.name} eventRef={events} />
+                            return <StatusPanelContainer key={device.id} id={device.id} name={device.name} eventRef={events} mode={device.mode} />
                         })}
                     </Row>
                 </Container>

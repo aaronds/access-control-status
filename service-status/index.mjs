@@ -2,7 +2,7 @@ import connectWithSecret from '../src/aws-connect-with-secret.js';
 import decodeMode from '../src/decode-mode.js';
 
 import { STSClient, AssumeRoleCommand } from "@aws-sdk/client-sts";
-import { GetObjectCommand, S3Client } from "@aws-sdk/client-s3";
+import { GetObjectCommand, PutObjectCommand, S3Client } from "@aws-sdk/client-s3";
 
 (async function () {
     let stsClient = new STSClient({});
@@ -67,6 +67,8 @@ import { GetObjectCommand, S3Client } from "@aws-sdk/client-s3";
     }
 
     console.log(currentStatus);
+
+    await s3Client.send(new PutObjectCommand({ Bucket : process.env.statusBucket, Key : process.env.statusKey, Body : JSON.stringify(currentStatus)}));
 
 })().then(function () {
     process.exit(0);

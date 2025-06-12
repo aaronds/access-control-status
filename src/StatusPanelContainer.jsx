@@ -13,6 +13,8 @@ export default function StatusPanelContainer(props) {
     const eventRef = props.eventRef;
     const id = props.id;
     const name = props.name;
+    const initialMode = props.mode;
+
 
     useEffect(function () {
         let offlineTimer = null;
@@ -60,7 +62,6 @@ export default function StatusPanelContainer(props) {
             }
         }
 
-
         function powerUpdate(power) {
             setIsOn(power.isOn);
             if (power.zx > 1) {
@@ -87,6 +88,36 @@ export default function StatusPanelContainer(props) {
             clearTimeout(offlineTimer);
         }
     }, [status, led, isOn, timeRemaining]);
+
+    useEffect(function () {
+        if (initialMode) {
+            let mode = initialMode;
+            let modeText = mode.mode.replace(/^CONTROLLER_MODE_/,"").replace(/_/, " ");
+
+            setStatus(modeText);
+
+            switch(mode.mode) {
+                case "CONTROLLER_MODE_UNLOCKED":
+                case "CONTROLLER_MODE_IN_USE":
+                    setLed("off");
+                    break;
+
+                case "CONTROLLER_MODE_LOCKED":
+                    setLed("breathe");
+                    break;
+
+                default:
+                    setLed("on");
+                    break;
+            }
+
+            if (mode.monitorEnabled) {
+                setIsOn(mode.isOn);
+            } else {
+                setIsOn(mode.mode == 'CONTROLLER_MODE_UNLOCKED');
+            }
+        }
+    }, [initialMode]);
 
     return <StatusPanelDisplay 
         id={id}
