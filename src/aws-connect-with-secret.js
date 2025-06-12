@@ -1,14 +1,16 @@
-import { Client, Message} from 'paho-mqtt'
-import moment from "moment"
-import { HmacSHA256, SHA256, enc } from 'crypto-js'
+import pahoMqtt from 'paho-mqtt';
+const {Client, Message} = pahoMqtt;
+import moment from "moment";
+import  cryptoJs from 'crypto-js';
+const { HmacSHA256, SHA256, enc } = cryptoJs;
 
-export default function connectWithSecret(secret) {
+export default function connectWithSecret(accessKey, secret, session, clientId) {
 
     const applicationData = {
-        clientId: "web-" + Math.round(Math.random() * 100000),
-        accessKeyId: "AKIAUDVZM6WU4QIHBO2T",
+        clientId: clientId,
+        accessKeyId: accessKey,
         secretAccessKey: secret,
-        sessionToken: "",
+        sessionToken: session,
         region: "eu-west-2",
         endpoint: "a1j7mrp8z8zjsh-ats.iot.eu-west-2.amazonaws.com",
         topic: ""

@@ -1,6 +1,14 @@
 import moment from "moment"
-import { HmacSHA256, SHA256, enc } from 'crypto-js'
 import { STSClient, AssumeRoleCommand } from "@aws-sdk/client-sts";
+import { GetObjectCommand, S3Client } from "@aws-sdk/client-s3";
+
+import {
+  getSignedUrl,
+  S3RequestPresigner,
+} from "@aws-sdk/s3-request-presigner";
+
+import cryptoJs from 'crypto-js'
+const { HmacSHA256, SHA256, enc } = cryptoJs;
 
 export async function handler(event) {
     
@@ -8,13 +16,27 @@ export async function handler(event) {
         ok : false
     };
 
-    if (event.password && event.password === process.env.password) {
-        let clientId = "web-" + Date.now() "-" + Math.round(Math.random() * 100000)
-        let stsClient = new STSClien({});
-        let webClientRole = await stsClient.send(new AssumeRoleCommand({ RoleArn : process.env.webClientRole, RoleSessionName : clientId }));
+    let body = {};
 
+    console.log(event);
+
+    if (event.password) {
+        body = event;
+    } else {
+        body = JSON.parse(event.body);
+    }
+
+    if (body.password && body.password === process.env.password) {
         rv.ok = true;
-        rv.mqttUrl = urlWithSecret(clientId, stsClient.Credentials.AccessKeyId, stsClient.Credentials.SecretAccessKey, stsClient.Credentials.SessionToken);
+
+        let clientId = "web-" + Date.now() + "-" + Math.round(Math.random() * 100000)
+        let stsClient = new STSClient({});
+        let webClientRole = await stsClient.send(new AssumeRoleCommand({ RoleArn : process.env.webClientRole, RoleSessionName : clientId }));
+        rv.clientId = clientId;
+        rv.mqttUrl = urlWithSecret(clientId, webClientRole.Credentials.AccessKeyId, webClientRole.Credentials.SecretAccessKey, webClientRole.Credentials.SessionToken);
+
+        let s3Client = new S3Client({});
+        rv.statusUrl = await getSignedUrl(s3Client, new GetObjectCommand({ Bucket : process.env.statusBucket, Key : process.env.statusKey }), { expiresIn : 30 } );
     }
 
     return rv;
@@ -25,7 +47,7 @@ export async function handler(event) {
 function urlWithSecret(clientId, accessKeyId, secretAccessKey, sessionToken) {
 
     const applicationData = {
-        clientId: ,
+        clientId: clientId,
         accessKeyId: accessKeyId,
         secretAccessKey: secretAccessKey,
         sessionToken: sessionToken,

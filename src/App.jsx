@@ -1,6 +1,4 @@
 import { useState, useEffect, useRef } from 'react'
-import reactLogo from './assets/react.svg'
-import viteLogo from '/vite.svg'
 import './App.css'
 import StatusPanelContainer from './StatusPanelContainer'
 
@@ -8,26 +6,24 @@ import Button from 'react-bootstrap/Button';
 import Form from 'react-bootstrap/Form';
 import Container from 'react-bootstrap/Container';
 import Row from 'react-bootstrap/Row';
+import Col from 'react-bootstrap/Col';
 
 import EventEmitter from 'eventemitter2';
 
 import connectWithSecret from './aws-connect-with-secret';
+import connectWithUrl from './mqtt-connect-with-url';
 import decodePower from './decode-power';
 import decodeMode from './decode-mode';
 
-let initialDevices = [
-    {
-        id : "30c6f7f4fe6c",
-        name : "Development"
-    }
-]
+const loginServiceUrl = "https://zipkxue6v77d7eku7viagzdrpm0odwkx.lambda-url.eu-west-2.on.aws/";
+
 
 
 function App() {
     const [ready, setReady] = useState(false);
     const [loading, setLoading] = useState(false);
     const [secret, setSecret] = useState("");
-    const [devices, setDevices] = useState(initialDevices);
+    const [devices, setDevices] = useState(null);
 
     let mqtt = useRef(null);
     let events = useRef(null);
@@ -36,10 +32,10 @@ function App() {
         setSecret(e.target.value);
     }
 
-    let onClickConnect = () => {
+    let onClickConnect = (e) => {
+        e.preventDefault();
         setLoading(true);
         tryToConnect(secret);
-        return false;
     }
 
     useEffect(function () {
@@ -62,13 +58,26 @@ function App() {
 
 
 
-    async function tryToConnect(secret) {
+    async function tryToConnect(password) {
         let mqttClient = null;
         let clientsSeen = [];
+        let initialDevices = [];
+
         try {
-            mqttClient = await connectWithSecret(secret)
+            let result = await loginPostJson({ "password" : password });
+
+            if (!result.ok) {
+                throw new Error("Login failed");
+            }
+
+            initialDevices = await fetchJson(result.statusUrl);
+            setDevices(initialDevices.slice());
+
+            mqttClient = await connectWithUrl(result.mqttUrl, result.clientId)
         } catch (e) {
+            setLoading(false);
             console.warn(e);
+            return;
         }
 
         mqtt.current = mqttClient;
@@ -137,25 +146,69 @@ function App() {
 
     return (
         <>
+            <Container>
+                <Row>
+                    <Col xs={12} className="text-start mb-4">
+                        <h1>Access Control Status</h1>
+                        <h3>Bristol Hackspace</h3>
+                    </Col>
+                </Row>
+            </Container>
             { ready ? 
                 <Container>
                     <Row className="gx-0">
-                        {devices.map(function (device) {
+                        {(devices || []).map(function (device) {
                             return <StatusPanelContainer key={device.id} id={device.id} name={device.name} eventRef={events} />
                         })}
                     </Row>
                 </Container>
                 : 
-                <>
-                    <Form.Group className="mb-3" controlId="formBasicPassword">
-                        <Form.Label>Password</Form.Label>
-                        <Form.Control type="password" placeholder="Password" value={secret} onChange={onChangeSecret} />
-                    </Form.Group>
-                    <Button variant="primary" type="submit" onClick={onClickConnect} disabled={loading}>Connect</Button>
-                </>
+                <Container>
+                    <p className="text-start">Check the members only section of the wiki for the password.</p>
+                    <Form onSubmit={onClickConnect}>
+                        <Form.Group className="mb-3" controlId="formBasicPassword">
+                            <Form.Control type="password" placeholder="Password" value={secret} onChange={onChangeSecret} />
+                        </Form.Group>
+                        <Button variant="primary" type="submit" disabled={loading}>Connect</Button>
+                    </Form>
+                </Container>
             }
             </>
-           )
+    )
+
+    function loginPostJson(obj) {
+        return fetch(
+            loginServiceUrl, 
+            {
+                method : "POST",
+                headers : {
+                    'Content-Type' : 'application/json'
+                },
+                body : JSON.stringify(obj)
+            }
+        ).then(function (res) {
+            if (res.ok) { 
+                return res.json();
+            } else { 
+                throw new Error("Login POST error:" + response.status);
+            }
+        })
+    }
+
+    function fetchJson(url) {
+        return fetch(
+            url, 
+            {
+                method : "GET"
+            }
+        ).then(function (res) {
+            if (res.ok) { 
+                return res.json();
+            } else { 
+                throw new Error("Login POST error:" + response.status);
+            }
+        })
+    }
 }
 
 export default App

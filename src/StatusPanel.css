@@ -1,11 +1,62 @@
 @keyframes breathe {
     0% {
-        fill: hsl(0 100% 36%);
+        fill: hsl(0 100% 50%);
     }
     50% {
         fill: hsl(0 100% 60%);
     }
     100% {
-        fill: hsl(0 100% 36%);
+        fill: hsl(0 100% 50%);
+    }
+}
+
+.acs-panel h3 {
+    font-family: '"Anybody", sans-serif';
+    font-weight: 300;
+    text-transform: uppercase;
+
+}
+
+.acs-screw img {
+    max-width: 1em;
+    width: 100%;
+}
+
+.acs-top .acs-screw img {
+    vertical-align: text-top;
+    rotate: -45deg;
+}
+
+.acs-bottom .acs-screw img {
+    rotate: 45deg;
+    vertical-align: text-bottom;
+}
+
+.acs-panel h3 {
+    font-size: 1.5rem;
+    margin-bottom: 0rem;
+}
+
+@media (max-width: 767.98px) { 
+    .acs-panel h3 {
+        min-height: 1.5rem;
+    }
+}
+
+@media (min-width: 767.98px) { 
+    .acs-panel h3 {
+        height: 3.5rem;
+    }
+}
+
+@media (min-width: 992px) {
+    .acs-top .acs-screw img {
+        position: relative;
+        top: -2px;
+    }
+
+    .acs-bottom .acs-screw img {
+        position: relative;
+        bottom: -6px;
     }
 }
