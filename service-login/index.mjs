@@ -1,5 +1,6 @@
 import moment from "moment"
 import { HmacSHA256, SHA256, enc } from 'crypto-js'
+import { STSClient, AssumeRoleCommand } from "@aws-sdk/client-sts";
 
 export async function handler(event) {
     
@@ -8,8 +9,12 @@ export async function handler(event) {
     };
 
     if (event.password && event.password === process.env.password) {
+        let clientId = "web-" + Date.now() "-" + Math.round(Math.random() * 100000)
+        let stsClient = new STSClien({});
+        let webClientRole = await stsClient.send(new AssumeRoleCommand({ RoleArn : process.env.webClientRole, RoleSessionName : clientId }));
+
         rv.ok = true;
-        rv.mqttUrl = urlWithSecret(process.env.secret);
+        rv.mqttUrl = urlWithSecret(clientId, stsClient.Credentials.AccessKeyId, stsClient.Credentials.SecretAccessKey, stsClient.Credentials.SessionToken);
     }
 
     return rv;
@@ -17,15 +22,15 @@ export async function handler(event) {
 
 
 
-function urlWithSecret(secret) {
+function urlWithSecret(clientId, accessKeyId, secretAccessKey, sessionToken) {
 
     const applicationData = {
-        clientId: "web-" + Math.round(Math.random() * 100000),
-        accessKeyId: "AKIAUDVZM6WU4QIHBO2T",
-        secretAccessKey: secret,
-        sessionToken: "",
+        clientId: ,
+        accessKeyId: accessKeyId,
+        secretAccessKey: secretAccessKey,
+        sessionToken: sessionToken,
         region: "eu-west-2",
-        endpoint: "a1j7mrp8z8zjsh-ats.iot.eu-west-2.amazonaws.com",
+        endpoint: process.env.endpoint,
         topic: ""
     }
 
