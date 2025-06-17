@@ -5,7 +5,7 @@ import { STSClient, AssumeRoleCommand } from "@aws-sdk/client-sts";
 import { GetObjectCommand, PutObjectCommand, S3Client } from "@aws-sdk/client-s3";
 
 (async function () {
-    let stsClient = new STSClient({});
+    let stsClient = new STSClient({ region : "eu-west-2" });
     let clientId = "service-status-" + Date.now() + "-" + Math.round(Math.random() * 100000)
     let mqttClient = null;
     let webClientRole = null;
