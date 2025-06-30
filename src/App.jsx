@@ -146,14 +146,6 @@ function App() {
 
     return (
         <>
-            <Container>
-                <Row>
-                    <Col xs={12} className="text-start mb-4">
-                        <h1>Access Control Status</h1>
-                        <h3>Bristol Hackspace</h3>
-                    </Col>
-                </Row>
-            </Container>
             { ready ? 
                 <Container>
                     <Row className="gx-0">

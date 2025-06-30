@@ -1,14 +1,17 @@
 {
   "name": "access-control-status",
   "private": true,
-  "version": "0.0.0",
+  "version": "0.0.1",
   "type": "module",
   "scripts": {
     "dev": "vite",
     "build": "vite build",
+    "buildLib": "ACS_LIB='true' vite build",
+    "buildBootstrap": "cp lib/bootstrap-acs.scss lib/bootstrap/scss/ && cd lib/bootstrap/ && npm run css && cd ../../ && cp lib/bootstrap/dist/css/bootstrap-acs.* dist/assets/",
     "lint": "eslint .",
     "preview": "vite preview",
-    "serviceLogin": "zip -r ../service-login.zip node_modules/ service-login.mjs"
+    "serviceLogin": "zip -r ../service-login.zip node_modules/ service-login.mjs",
+    "postinstall": "git submodule init && git submodule update && cd lib/bootstrap/ && npm install"
   },
   "dependencies": {
     "bootstrap": "^5.3.6",

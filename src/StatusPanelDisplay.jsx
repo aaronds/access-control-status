@@ -38,7 +38,7 @@ export default function StatusPanelDisplay(props) {
 
 
 
-    return <Col sm={6} md={3} lg={3} xl={2} className = "acs-panel pb-4"><Container>
+    return <Col sm={6} md={3} lg={3} xl={2} className = "acs-panel pb-4 text-center"><Container>
         <Col md={12} style={{borderRadius: "3px", border: "1px solid #bbb", background: "#ddd"}} className="mx-0">
             <Row className="acs-top">
                 <Col className="d-none d-lg-block acs-screw" md={2}>
