@@ -5,7 +5,7 @@ import { STSClient, AssumeRoleCommand } from "@aws-sdk/client-sts";
 import { GetObjectCommand, PutObjectCommand, S3Client } from "@aws-sdk/client-s3";
 
 (async function () {
-    let stsClient = new STSClient({});
+    let stsClient = new STSClient({ });
     let clientId = "service-status-" + Date.now() + "-" + Math.round(Math.random() * 100000)
     let mqttClient = null;
     let webClientRole = null;
@@ -18,6 +18,7 @@ import { GetObjectCommand, PutObjectCommand, S3Client } from "@aws-sdk/client-s3
     try {
         webClientRole = await stsClient.send(new AssumeRoleCommand({ RoleArn : process.env.webClientRole, RoleSessionName : clientId }));
     } catch (e) {
+        console.log(e, e.stack)
     }
 
     if (webClientRole) {
@@ -28,6 +29,10 @@ import { GetObjectCommand, PutObjectCommand, S3Client } from "@aws-sdk/client-s3
         accessKeyId = process.env['AWS_ACCESS_KEY_ID'];
         secretAccessKey = process.env['AWS_SECRET_ACCESS_KEY'];
         sessionToken = process.env['AWS_SESSION_TOKEN'];
+    }
+
+    if (!accessKeyId) {
+        throw new Error("No Access Key Resolved");
     }
 
     mqttClient = await connectWithSecret(accessKeyId, secretAccessKey, sessionToken, clientId);
