@@ -5,6 +5,7 @@ import { STSClient, AssumeRoleCommand } from "@aws-sdk/client-sts";
 import { GetObjectCommand, PutObjectCommand, S3Client } from "@aws-sdk/client-s3";
 
 (async function () {
+    let now = new Date();
     let stsClient = new STSClient({ });
     let clientId = "service-status-" + Date.now() + "-" + Math.round(Math.random() * 100000)
     let mqttClient = null;
@@ -14,6 +15,7 @@ import { GetObjectCommand, PutObjectCommand, S3Client } from "@aws-sdk/client-s3
     let accessKeyId = null;
     let secretAccessKey = null;
     let sessionToken = null;
+
 
     try {
         webClientRole = await stsClient.send(new AssumeRoleCommand({ RoleArn : process.env.webClientRole, RoleSessionName : clientId }));
@@ -73,7 +75,12 @@ import { GetObjectCommand, PutObjectCommand, S3Client } from "@aws-sdk/client-s3
 
     console.log(currentStatus);
 
+
     await s3Client.send(new PutObjectCommand({ Bucket : process.env.statusBucket, Key : process.env.statusKey, Body : JSON.stringify(currentStatus)}));
+
+    let archiveKey = process.env.archiveFolder + `/Year=${now.getFullYear()}/Month=${(now.getMonth() + 1).toString().padStart(2,"0")}/Day=${now.getDate().toString().padStart(2,"0")}/service-status-${now.toISOString()}.json`;
+
+    await s3Client.send(new PutObjectCommand({ Bucket : process.env.statusBucket, Key : process.env.archiveKey, Body : JSON.stringify(currentStatus)}));
 
 })().then(function () {
     process.exit(0);
