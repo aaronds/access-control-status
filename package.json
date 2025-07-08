@@ -7,7 +7,7 @@
     "dev": "vite",
     "build": "vite build",
     "buildLib": "ACS_LIB='true' vite build",
-    "buildBootstrap": "cp lib/bootstrap-acs.scss lib/bootstrap/scss/ && cd lib/bootstrap/ && npm run css && cd ../../ && cp lib/bootstrap/dist/css/bootstrap-acs.* dist/assets/",
+    "buildBootstrap": "cp lib/bootstrap-acs.scss lib/bootstrap/scss/ && cd lib/bootstrap/ && npm run css && cd ../../ && cp lib/bootstrap/dist/css/bootstrap-acs.* dist/",
     "lint": "eslint .",
     "preview": "vite preview",
     "serviceLogin": "zip -r ../service-login.zip node_modules/ service-login.mjs",

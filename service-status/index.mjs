@@ -80,7 +80,7 @@ import { GetObjectCommand, PutObjectCommand, S3Client } from "@aws-sdk/client-s3
 
     let archiveKey = process.env.archiveFolder + `/Year=${now.getFullYear()}/Month=${(now.getMonth() + 1).toString().padStart(2,"0")}/Day=${now.getDate().toString().padStart(2,"0")}/service-status-${now.toISOString()}.json`;
 
-    await s3Client.send(new PutObjectCommand({ Bucket : process.env.statusBucket, Key : process.env.archiveKey, Body : JSON.stringify(currentStatus)}));
+    await s3Client.send(new PutObjectCommand({ Bucket : process.env.statusBucket, Key : archiveKey, Body : JSON.stringify(currentStatus)}));
 
 })().then(function () {
     process.exit(0);

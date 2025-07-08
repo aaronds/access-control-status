@@ -4,7 +4,7 @@ import Col from 'react-bootstrap/Col';
 import StatusPanelDisplay from './StatusPanelDisplay'
 import './Demo.css'
 
-export default function Demo() {
+export default function () {
     return (
         <>
             <Container>
