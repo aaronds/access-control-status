@@ -16,6 +16,7 @@ import decodePower from './decode-power';
 import decodeMode from './decode-mode';
 
 const loginServiceUrl = "https://zipkxue6v77d7eku7viagzdrpm0odwkx.lambda-url.eu-west-2.on.aws/";
+const editServiceUrl = "https://avlyeh6dbkyueahzwkiqta2j7a0vsmfu.lambda-url.eu-west-2.on.aws/";
 
 
 
@@ -144,13 +145,23 @@ function App() {
         setLoading(false);
     }
 
+    async function editDevice(id, value) {
+        let result = await editPostJson({
+            "id": id,
+            "password" : secret,
+            "device" : value
+        });
+
+        return result;
+    }
+
     return (
         <>
             { ready ? 
                 <Container>
                     <Row className="gx-0">
                         {(devices || []).map(function (device) {
-                            return <StatusPanelContainer key={device.id} id={device.id} name={device.name} eventRef={events} mode={device.mode} />
+                            return <StatusPanelContainer key={device.id} id={device.id} name={device.name} eventRef={events} mode={device.mode} device={device} editDevice={editDevice} />
                         })}
                     </Row>
                 </Container>
@@ -183,6 +194,25 @@ function App() {
                 return res.json();
             } else { 
                 throw new Error("Login POST error:" + response.status);
+            }
+        })
+    }
+
+    function editPostJson(obj) {
+        return fetch(
+            editServiceUrl, 
+            {
+                method : "POST",
+                headers : {
+                    'Content-Type' : 'application/json'
+                },
+                body : JSON.stringify(obj)
+            }
+        ).then(function (res) {
+            if (res.ok) { 
+                return res.json();
+            } else { 
+                throw new Error("Edit POST error:" + response.status);
             }
         })
     }

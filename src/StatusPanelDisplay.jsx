@@ -5,8 +5,12 @@ import './StatusPanel.css'
 import screwA from './assets/Screw_a.svg';
 import screwB from './assets/Screw_b.svg';
 
+import StatusPanelMotd from './StatusPanelMotd';
+import StatusPanelStatus from './StatusPanelStatus';
+import StatusPanelBottom from './StatusPanelBottom';
+
 export default function StatusPanelDisplay(props) {
-    let { id, name, led, isOn, timeRemaining, status, power, freq, motdLine1, motdLine2 } = props;
+    let { id, name, led, isOn, timeRemaining, status, power, freq, motdLine1, motdLine2, motdLink, menuMode, setMenuMode, updateMotd, submitMotd, cancelMotd } = props;
 
     let ledStyle = {fill : "black"};
 
@@ -60,17 +64,12 @@ export default function StatusPanelDisplay(props) {
             </Row>
             <Row>
                 <Col xs={12}>
-                    <p className="mb-0 mt-1" style={{fontFamily: "monospace"}}>{motdLine1 || <span className = "d-none d-sm-inline">&nbsp;</span>}</p>
-                    <p className="mb-1 mt-0" style={{fontFamily: "monospace"}}>{motdLine2 || <span className = "d-none d-sm-inline">&nbsp;</span>}</p>
+                    <StatusPanelMotd motdLine1={motdLine1} motdLine2={motdLine2} motdLink={motdLink} updateMotd={updateMotd} submitMotd={submitMotd} cancelMotd={cancelMotd} menuMode={menuMode} setMenuMode={setMenuMode} />
                 </Col>
             </Row>
             <Row>
                 <Col xs={12}>
-                    <svg width = "90" viewBox="0 0 20.2 20.2" xmlns="http://www.w3.org/2000/svg" style={{cursor: "not-allowed"}} className="d-none d-sm-inline">
-                        <circle cx="10.1" cy="10.1" r="10.1" fill="#424242" />
-                        {timeRemaining < 1 ? <circle cx="10.1" cy="10.1" r="7" fill="none" stroke="#FCEF91" stroke-dasharray={timerCircleOn + " " + timerCircleOff} stroke-dashoffset={timerCircleOffset} stroke-linecap="round"/> : null }
-                    </svg>
-                    <p>{status}</p>
+                    <StatusPanelStatus timeRemaining={timeRemaining} timerCircleOn={timerCircleOn} timerCircleOff={timerCircleOff} timerCircleOffset={timerCircleOffset} status={status} menuMode={menuMode} />
                 </Col>
             </Row>
             <Row>
@@ -85,7 +84,7 @@ export default function StatusPanelDisplay(props) {
                     <img src={screwB} style={{}} />
                 </Col>
                 <Col xs={12} lg={8}>
-                    {power > 0.01 ? power + "W" : null }&nbsp;{freq > 0.01 ? freq.toFixed(2) + "Hz" : null}
+                    <StatusPanelBottom menuMode={menuMode} setMenuMode={setMenuMode} power={power} freq={freq} />
                 </Col>
                 <Col className="d-none d-lg-block acs-screw" md={2}>
                     <img src={screwB} style={{}} />

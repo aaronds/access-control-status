@@ -1,0 +1,15 @@
+{
+  "name": "service-edit",
+  "version": "0.0.1",
+  "description": "Service to edit status panels",
+  "main": "index.mjs",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "package": "zip -r ../../service-edit.zip node_modules/ index.mjs"
+  },
+  "author": "",
+  "license": "MIT",
+  "dependencies": {
+    "@aws-sdk/client-s3": "^3.842.0"
+  }
+}

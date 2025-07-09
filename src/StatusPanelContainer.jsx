@@ -9,8 +9,10 @@ export default function StatusPanelContainer(props) {
     const [timeRemaining, setTimeRemaining] = useState(1);
     const [power, setPower] = useState(0);
     const [freq, setFreq] = useState(0.0);
-
+    const [menuMode, setMenuMode] = useState("icons");
+    const [device, setDevice] = useState(props.device || {});
     const eventRef = props.eventRef;
+    const editDevice = props.editDevice;
     const id = props.id;
     const name = props.name;
     const initialMode = props.mode;
@@ -119,6 +121,19 @@ export default function StatusPanelContainer(props) {
         }
     }, [initialMode]);
 
+    function updateMotd(val) {
+        let newDevice = Object.assign({}, device, val);
+        setDevice(newDevice);
+    }
+
+    async function submitMotd() {
+        return editDevice(device.id, device);
+    }
+
+    function cancelMotd() {
+        setDevice(props.device);
+    }
+
     return <StatusPanelDisplay 
         id={id}
         name={name || id}
@@ -127,5 +142,14 @@ export default function StatusPanelContainer(props) {
         timeRemaining={timeRemaining}
         power={power}
         freq={freq}
-        status={status} />
+        status={status}
+        menuMode={menuMode}
+        setMenuMode={setMenuMode}
+        motdLine1={device.motdLine1}
+        motdLine2={device.motdLine2}
+        motdLink={device.motdLink}
+        updateMotd={updateMotd}
+        submitMotd={submitMotd}
+        cancelMotd={cancelMotd}
+        />
 }
