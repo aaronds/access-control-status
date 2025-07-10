@@ -34,13 +34,6 @@ export default function StatusPanelDisplay(props) {
             break;
     }
 
-    var timerCircleRadius = 7;
-    var timerCircleLength = Math.PI * 2 * timerCircleRadius;
-    var timerCircleOn = Math.min(timeRemaining, 1) * timerCircleLength;
-    var timerCircleOff = timerCircleLength - timerCircleOn;
-    var timerCircleOffset = 1.25 * timerCircleLength;
-
-
 
     return <Col sm={6} md={3} lg={3} xl={2} className = "acs-panel pb-4 text-center"><Container>
         <Col md={12} style={{borderRadius: "3px", border: "1px solid #bbb", background: "#ddd"}} className="mx-0">
@@ -69,7 +62,7 @@ export default function StatusPanelDisplay(props) {
             </Row>
             <Row>
                 <Col xs={12}>
-                    <StatusPanelStatus timeRemaining={timeRemaining} timerCircleOn={timerCircleOn} timerCircleOff={timerCircleOff} timerCircleOffset={timerCircleOffset} status={status} menuMode={menuMode} />
+                    <StatusPanelStatus timeRemaining={timeRemaining} status={status} menuMode={menuMode} />
                 </Col>
             </Row>
             <Row>

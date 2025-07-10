@@ -11,6 +11,8 @@ export default function StatusPanelContainer(props) {
     const [freq, setFreq] = useState(0.0);
     const [menuMode, setMenuMode] = useState("icons");
     const [device, setDevice] = useState(props.device || {});
+    const [modeMessage, setModeMessage] = useState({});
+    const [powerMessage, setPowerMessage] = useState({});
     const eventRef = props.eventRef;
     const editDevice = props.editDevice;
     const id = props.id;
@@ -30,6 +32,7 @@ export default function StatusPanelContainer(props) {
             let modeText = mode.mode.replace(/^CONTROLLER_MODE_/,"").replace(/_/, " ");
 
             setStatus(modeText);
+            setModeMessage(mode);
 
             switch(mode.mode) {
                 case "CONTROLLER_MODE_UNLOCKED":
@@ -66,6 +69,7 @@ export default function StatusPanelContainer(props) {
 
         function powerUpdate(power) {
             setIsOn(power.isOn);
+            setPowerMessage(power);
             if (power.zx > 1) {
                 let freq = (power.zx / (power.time / 1000000)) / 2;
                 setFreq(freq);
@@ -134,22 +138,51 @@ export default function StatusPanelContainer(props) {
         setDevice(props.device);
     }
 
-    return <StatusPanelDisplay 
-        id={id}
-        name={name || id}
-        led={led}
-        isOn={isOn}
-        timeRemaining={timeRemaining}
-        power={power}
-        freq={freq}
-        status={status}
-        menuMode={menuMode}
-        setMenuMode={setMenuMode}
-        motdLine1={device.motdLine1}
-        motdLine2={device.motdLine2}
-        motdLink={device.motdLink}
-        updateMotd={updateMotd}
-        submitMotd={submitMotd}
-        cancelMotd={cancelMotd}
-        />
+    switch (menuMode) {
+        case "json":
+            return <Col sm={12}>
+                <Row>
+                    <Col>
+                        <h4>Device</h4>
+                        <pre>{JSON.stringify(device, null, "  ")}</pre>
+                    </Col>
+                </Row>
+                <Row>
+                    <Col>
+                        <h4>Mode</h4>
+                        <pre>{JSON.stringify(modeMessage, null, "  ")}</pre>
+                    </Col>
+                </Row>
+                <Row>
+                    <Col>
+                        <h4>Power</h4>
+                        <pre>{JSON.stringify(powerMessage, null, "  ")}</pre>
+                    </Col>
+                </Row>
+                <Row>
+                    <Col>
+                        <Button onClick={() =>{setMenuMode('default')}}>Close</Button>
+                    </Col>
+                </Row>
+            </Col>;
+        default:
+            return <StatusPanelDisplay 
+                id={id}
+                name={name || id}
+                led={led}
+                isOn={isOn}
+                timeRemaining={timeRemaining}
+                power={power}
+                freq={freq}
+                status={status}
+                menuMode={menuMode}
+                setMenuMode={setMenuMode}
+                motdLine1={device.motdLine1}
+                motdLine2={device.motdLine2}
+                motdLink={device.motdLink}
+                updateMotd={updateMotd}
+                submitMotd={submitMotd}
+                cancelMotd={cancelMotd}
+                />
+    }
 }

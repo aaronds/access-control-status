@@ -1,6 +1,12 @@
 
 export default function StatusPanelStatus(props) {
-    let {timeRemaining, timerCircleOn, timerCircleOff, timerCircleOffset, status, menuMode} = props;
+    let {timeRemaining, status, menuMode} = props;
+
+    let timerCircleRadius = 7;
+    let timerCircleLength = Math.PI * 2 * timerCircleRadius;
+    let timerCircleOn = Math.min(timeRemaining, 1) * timerCircleLength;
+    let timerCircleOff = timerCircleLength - timerCircleOn;
+    let timerCircleOffset = 1.25 * timerCircleLength;
 
     switch (menuMode) {
         case "editMotd":
