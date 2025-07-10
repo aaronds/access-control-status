@@ -1,6 +1,7 @@
 import { useState, useEffect} from 'react';
 
 import StatusPanelDisplay from './StatusPanelDisplay.jsx';
+import StatusPanelJson from './StatusPanelJson.jsx';
 
 export default function StatusPanelContainer(props) {
     const [status, setStatus] = useState("INITIALISING");
@@ -140,31 +141,7 @@ export default function StatusPanelContainer(props) {
 
     switch (menuMode) {
         case "json":
-            return <Col sm={12}>
-                <Row>
-                    <Col>
-                        <h4>Device</h4>
-                        <pre>{JSON.stringify(device, null, "  ")}</pre>
-                    </Col>
-                </Row>
-                <Row>
-                    <Col>
-                        <h4>Mode</h4>
-                        <pre>{JSON.stringify(modeMessage, null, "  ")}</pre>
-                    </Col>
-                </Row>
-                <Row>
-                    <Col>
-                        <h4>Power</h4>
-                        <pre>{JSON.stringify(powerMessage, null, "  ")}</pre>
-                    </Col>
-                </Row>
-                <Row>
-                    <Col>
-                        <Button onClick={() =>{setMenuMode('default')}}>Close</Button>
-                    </Col>
-                </Row>
-            </Col>;
+            return <StatusPanelJson device={device} modeMessage={modeMessage} powerMessage={powerMessage} setMenuMode={setMenuMode}/>;
         default:
             return <StatusPanelDisplay 
                 id={id}

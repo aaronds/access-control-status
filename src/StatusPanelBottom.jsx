@@ -10,7 +10,7 @@ export default function StatusPanelBottom(props) {
             return <>
                 <a href="#" onClick={() => {setMenuMode('editMotd')}}><ChatSquareText /></a>
                 <a href="#" onClick={() =>{setMenuMode('power')}}><Plug  /></a>
-                <a href="#" onClick={() => {setMenuMode('json')}}><Braces /> Braces</a>
+                <a href="#" onClick={() => {setMenuMode('json')}}><Braces /></a>
             </>;
     }
 }
