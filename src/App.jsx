@@ -19,12 +19,11 @@ const loginServiceUrl = "https://zipkxue6v77d7eku7viagzdrpm0odwkx.lambda-url.eu-
 const editServiceUrl = "https://avlyeh6dbkyueahzwkiqta2j7a0vsmfu.lambda-url.eu-west-2.on.aws/";
 
 
-
 function App() {
     const [ready, setReady] = useState(false);
     const [loading, setLoading] = useState(false);
     const [secret, setSecret] = useState("");
-    const [devices, setDevices] = useState(null);
+    const [devices, setDevices] = useState([]);
 
     let mqtt = useRef(null);
     let events = useRef(null);
@@ -155,12 +154,47 @@ function App() {
         return result;
     }
 
+    devices.sort(function (a, b) {
+        if (a.name == b.name) {
+            return (a.id || "").localeCompare(b.id || "");
+        } else {
+            return (a.name || "").localeCompare(b.name || "");
+        }
+    });
+
+    let groups = {};
+    let noGroup = [];
+
+    for (let device of devices) {
+        if (device.group) {
+            if (!groups[device.group]) {
+                groups[device.group] = [];
+            }
+            groups[device.group].push(device);
+        } else {
+            noGroup.push(device);
+        }
+    }
+
+    let groupNames = Object.keys(groups);
+    groupNames.sort();
+
     return (
         <>
             { ready ? 
                 <Container>
+                    {groupNames.map(function (groupName) {
+                        return <>
+                            <Row><h2>{groupName}</h2></Row>
+                            <Row>
+                                {groups[groupName].map(function (device) {
+                                    return <StatusPanelContainer key={device.id} id={device.id} name={device.name} eventRef={events} mode={device.mode} device={device} editDevice={editDevice} />
+                                })}
+                            </Row>
+                        </>
+                    })}
                     <Row className="gx-0">
-                        {(devices || []).map(function (device) {
+                        {(noGroup || []).map(function (device) {
                             return <StatusPanelContainer key={device.id} id={device.id} name={device.name} eventRef={events} mode={device.mode} device={device} editDevice={editDevice} />
                         })}
                     </Row>
