@@ -10,7 +10,7 @@ import StatusPanelStatus from './StatusPanelStatus';
 import StatusPanelBottom from './StatusPanelBottom';
 
 export default function StatusPanelDisplay(props) {
-    let { id, name, led, isOn, timeRemaining, status, power, freq, motdLine1, motdLine2, motdLink, menuMode, setMenuMode, updateMotd, submitMotd, cancelMotd } = props;
+    let { id, name, led, isOn, isObserver, timeRemaining, status, power, freq, motdLine1, motdLine2, motdLink, menuMode, setMenuMode, updateMotd, submitMotd, cancelMotd } = props;
 
     let ledStyle = {fill : "black"};
 
@@ -48,13 +48,13 @@ export default function StatusPanelDisplay(props) {
                     <img src={screwB} style={{}} />
                 </Col>
             </Row>
-            <Row className = "d-none d-lg-flex">
+            {!isObserver ? <Row className = "d-none d-lg-flex">
                 <Col xs={12}>
                     <svg width = "100%" viewBox="0 0 50 6.4" xmlns="http://www.w3.org/2000/svg">
                         <circle cx="25" cy="3.2" r="3.2" style={ledStyle} />
                     </svg>
                 </Col>
-            </Row>
+            </Row> : null }
             <Row>
                 <Col xs={12}>
                     <StatusPanelMotd motdLine1={motdLine1} motdLine2={motdLine2} motdLink={motdLink} updateMotd={updateMotd} submitMotd={submitMotd} cancelMotd={cancelMotd} menuMode={menuMode} setMenuMode={setMenuMode} />
@@ -62,7 +62,7 @@ export default function StatusPanelDisplay(props) {
             </Row>
             <Row>
                 <Col xs={12}>
-                    <StatusPanelStatus timeRemaining={timeRemaining} status={status} menuMode={menuMode} />
+                    <StatusPanelStatus timeRemaining={timeRemaining} status={status} menuMode={menuMode} isObserver={isObserver} />
                 </Col>
             </Row>
             <Row>

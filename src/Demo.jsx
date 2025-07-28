@@ -3,6 +3,7 @@ import Row from 'react-bootstrap/Row';
 import Col from 'react-bootstrap/Col';
 import StatusPanelDisplay from './StatusPanelDisplay'
 import './Demo.css'
+import './StatusPanel.css'
 
 export default function () {
     return (
@@ -15,6 +16,7 @@ export default function () {
                     <StatusPanelDisplay id = "unlockedCountdown" name = "Count Down" led = "off" isOn={true} timeRemaining={0.66} status = "UNLOCKED" power = {0} freq = {50.13} />
                     <StatusPanelDisplay id = "offline" name = "Offline" led = "offline" isOn={false} timeRemaining={1} status = "OFFLINE" power = {0} freq = {0} />
                     <StatusPanelDisplay id = "locked" name = "Ready" led = "breathe" isOn={false} timeRemaining={1} status = "LOCKED" power = {0} freq = {0} motdLine1="INDUCTION" motdLine2="Tue 19:00"/>
+                    <StatusPanelDisplay id = "observer" name = "Observer" led = "breathe" isOn={true} isObserver={true} timeRemaining={1} status = "UNLOCKED" power = {50} freq = {50.13} />
                 </Row>
             </Container>
         </>

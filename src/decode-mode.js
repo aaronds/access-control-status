@@ -22,8 +22,11 @@ export default function decodeModeByVersion(message) {
             isOn : false,
             isUsed : false,
             monitorEnabled : false,
+            nfcEnabled : true,
+            isObserver : false,
             timeRemaining : 0,
-            unlockedTimeout : 0
+            unlockedTimeout : 0,
+            energyTotal : 0
         };
         
         res.timeRemaining = dv.getUint32(offset, true);
@@ -40,6 +43,13 @@ export default function decodeModeByVersion(message) {
         res.isOn = (flags & 1) > 0; 
         res.isUsed = (flags & 2) > 0;
         res.monitorEnabled = (flags & 4) > 0;
+        res.nfcEnabled = (flags & 8) > 0;
+        res.isObserver = (flags & 16) > 0;
+
+        if (dv.byteLength > 22) {
+            offset += 4;
+            res.energyTotal = dv.getUint32(offset, true);
+        }
 
         return res;
     }
