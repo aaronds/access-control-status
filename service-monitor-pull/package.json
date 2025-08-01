@@ -1,0 +1,15 @@
+{
+  "name": "service-monitor-pull",
+  "version": "0.0.1",
+  "description": "Pull ACS messages and transmit to grafana etc",
+  "main": "index.mjs",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "",
+  "license": "BSD",
+  "dependencies": {
+    "@aws-sdk/client-sqs": "^3.858.0",
+    "prometheus-remote-write": "^0.5.1"
+  }
+}
