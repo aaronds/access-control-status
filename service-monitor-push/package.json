@@ -9,6 +9,7 @@
   "author": "",
   "license": "BSD",
   "dependencies": {
-    "@aws-sdk/client-sqs": "^3.858.0"
+    "@aws-sdk/client-sqs": "^3.858.0",
+    "@aws-sdk/client-sts": "^3.858.0"
   }
 }
