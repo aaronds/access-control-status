@@ -114,6 +114,7 @@ async function sendMessages(queueUrl, messageArray) {
     try {
         await sqsClient.send(new SendMessageCommand({
             QueueUrl : queueUrl,
+            MessageGroupId : "bhs",
             MessageBody : JSON.stringify(messageArrayToSend)
         }));
 
