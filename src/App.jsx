@@ -1,6 +1,7 @@
-import { useState, useEffect, useRef } from 'react'
-import './App.css'
-import StatusPanelContainer from './StatusPanelContainer'
+import { useState, useEffect, useRef } from 'react';
+import './App.css';
+import StatusPanelContainer from './StatusPanelContainer';
+
 
 import Button from 'react-bootstrap/Button';
 import Form from 'react-bootstrap/Form';
@@ -14,6 +15,7 @@ import connectWithSecret from './aws-connect-with-secret';
 import connectWithUrl from './mqtt-connect-with-url';
 import decodePower from './decode-power';
 import decodeMode from './decode-mode';
+import decodeError from './decode-error';
 
 const loginServiceUrl = "https://zipkxue6v77d7eku7viagzdrpm0odwkx.lambda-url.eu-west-2.on.aws/";
 const editServiceUrl = "https://avlyeh6dbkyueahzwkiqta2j7a0vsmfu.lambda-url.eu-west-2.on.aws/";
@@ -24,6 +26,7 @@ function App() {
     const [loading, setLoading] = useState(false);
     const [secret, setSecret] = useState("");
     const [devices, setDevices] = useState([]);
+
 
     let mqtt = useRef(null);
     let events = useRef(null);
@@ -95,33 +98,17 @@ function App() {
                 switch(messageType) {
                     case "power":
                         let powerMessage = decodePower(message);
-
-                        if (clientsSeen.indexOf(powerMessage.id) < 0) {
-                            clientsSeen.push(powerMessage.id);
-                            events.current.emit("new", { id : powerMessage.id });
-                            setTimeout(function () {
-                                events.current.emit(powerMessage.id + ".power", powerMessage); 
-                            }, 100);
-
-                        } else {
-                            events.current.emit(powerMessage.id + ".power", powerMessage); 
-                        }
-                        
+                        newOrEmit(powerMessage.id, "power", powerMessage);
                         break;
 
                     case "mode":
                         let modeMessage = decodeMode(message);
-                        if (clientsSeen.indexOf(modeMessage.id) < 0) {
-                            clientsSeen.push(modeMessage.id);
-                            events.current.emit("new", { id : modeMessage.id });
-                            setTimeout(function () {
-                                events.current.emit(modeMessage.id + ".mode", modeMessage); 
-                            }, 100);
+                        newOrEmit(modeMessage.id, "mode", modeMessage);
+                        break;
 
-                        } else {
-                            events.current.emit(modeMessage.id + ".mode", modeMessage); 
-                        }
-
+                    case "error":
+                        let errorMessage = decodeError(message);
+                        newOrEmit(errorMessage.id, "error", errorMessage);
                         break;
                 }
             } catch (e) {
@@ -142,6 +129,19 @@ function App() {
         }
 
         setLoading(false);
+
+        function newOrEmit(id, messageType, message) {
+            if (clientsSeen.indexOf(id) < 0) {
+                clientsSeen.push(id);
+                events.current.emit("new", { id : id });
+                setTimeout(function () {
+                    events.current.emit(id + "." + messageType, message); 
+                }, 100);
+
+            } else {
+                events.current.emit(id + "." + messageType, message); 
+            }
+        }
     }
 
     async function editDevice(id, value) {

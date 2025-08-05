@@ -3,6 +3,25 @@ import { useState, useEffect} from 'react';
 import StatusPanelDisplay from './StatusPanelDisplay.jsx';
 import StatusPanelJson from './StatusPanelJson.jsx';
 
+import { errorMetaData } from 'access-control-firmware';
+
+function convertError(error) {
+    let res = {};
+
+    let tag = errorMetaData.tags.find((t) => t.value == error.tag);
+
+    if (!tag) {
+        return;
+    }
+
+    let errorMessage = tag.errors.find((e) => e.value == error.error);
+
+    res.tag = tag.name;
+    res.error = errorMessage?.name;
+
+    return res;
+}
+
 export default function StatusPanelContainer(props) {
     const [status, setStatus] = useState("INITIALISING");
     const [led, setLed] = useState("off");
@@ -14,15 +33,24 @@ export default function StatusPanelContainer(props) {
     const [device, setDevice] = useState(props.device || {});
     const [modeMessage, setModeMessage] = useState({});
     const [powerMessage, setPowerMessage] = useState({});
+    const [errorTime, setErrorTime] = useState(0);
+    const [errorTag, setErrorTag] = useState("");
+    const [errorMessage, setErrorMessage] = useState("");
     const eventRef = props.eventRef;
     const editDevice = props.editDevice;
     const id = props.id;
     const name = props.name;
     const initialMode = props.mode;
 
+    function clearError() {
+        setErrorTime(0);
+        setErrorTag("");
+        setErrorMessage("");
+    }
 
     useEffect(function () {
         let offlineTimer = null;
+        let errorTimer = null;
 
         function onOffline() {
             setLed("offline");
@@ -85,14 +113,56 @@ export default function StatusPanelContainer(props) {
             setPower(power.power);
         }
 
+        function errorUpdate(error) {
+            console.warn(error.id, error);
+
+            let errorDefine = convertError(error);
+
+            if (!errorDefine) {
+                return;
+            }
+
+            setErrorTime(Date.now());
+            setErrorTag(errorDefine.tag.replace(/ACS_ERROR_/,""));
+            setErrorMessage(errorDefine.error.replace(/_/g," "));
+
+            if (errorTimer) {
+                clearTimeout(errorTimer);
+            }
+
+            errorTimer = setTimeout(function () {
+                clearError();
+            }, 20000);
+
+            if (offlineTimer) {
+                clearTimeout(offlineTimer);
+                offlineTimer = setTimeout(onOffline,30100);
+            }
+        }
+
         eventRef.current.on(id + ".mode", modeUpdate);
         eventRef.current.on(id + ".power", powerUpdate);
+        eventRef.current.on(id + ".error", errorUpdate);
+
         offlineTimer = setTimeout(onOffline,30100);
+        if (errorTime) {
+            let errorTimeRemaining = 30000 - (Date.now() - errorTime);
+
+            if (errorTimeRemining > 0) {
+                errorTimer = setTimeout(function () {
+                    clearError();
+                }, errorTimeRemaining);
+            } else {
+                clearError();
+            }
+        }
 
         return function () {
             eventRef.current.off(id + ".mode", modeUpdate);
             eventRef.current.off(id + ".power", powerUpdate);
+            eventRef.current.off(id + ".error", errorUpdate);
             clearTimeout(offlineTimer);
+            clearTimeout(errorTimer);
         }
     }, [status, led, isOn, timeRemaining]);
 
@@ -160,6 +230,8 @@ export default function StatusPanelContainer(props) {
                 updateMotd={updateMotd}
                 submitMotd={submitMotd}
                 cancelMotd={cancelMotd}
+                errorTag={errorTag}
+                errorMessage={errorMessage}
                 />
     }
 }

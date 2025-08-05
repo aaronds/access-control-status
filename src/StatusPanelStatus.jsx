@@ -1,12 +1,20 @@
+import Alert from 'react-bootstrap/Alert';
 
 export default function StatusPanelStatus(props) {
-    let {timeRemaining, status, menuMode, isObserver} = props;
+    let {timeRemaining, status, menuMode, isObserver, errorTag, errorMessage} = props;
 
     let timerCircleRadius = 7;
     let timerCircleLength = Math.PI * 2 * timerCircleRadius;
     let timerCircleOn = Math.min(timeRemaining, 1) * timerCircleLength;
     let timerCircleOff = timerCircleLength - timerCircleOn;
     let timerCircleOffset = 1.25 * timerCircleLength;
+
+    if (errorTag) {
+        return <>
+            <Alert style={{minHeight: "90px", marginBottom: "0px"}} variant="danger">{errorTag}<br />{errorMessage}</Alert>
+            <p style={{fontFamily: "monospace"}}>{status}</p>
+        </>;
+    }
 
     if (isObserver) {
         return <p style={{fontFamily: "monospace"}}>{status}</p>;

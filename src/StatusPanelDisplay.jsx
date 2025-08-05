@@ -10,7 +10,7 @@ import StatusPanelStatus from './StatusPanelStatus';
 import StatusPanelBottom from './StatusPanelBottom';
 
 export default function StatusPanelDisplay(props) {
-    let { id, name, led, isOn, isObserver, timeRemaining, status, power, freq, motdLine1, motdLine2, motdLink, menuMode, setMenuMode, updateMotd, submitMotd, cancelMotd } = props;
+    let { id, name, led, isOn, isObserver, timeRemaining, status, power, freq, motdLine1, motdLine2, motdLink, menuMode, setMenuMode, updateMotd, submitMotd, cancelMotd, errorTag, errorMessage } = props;
 
     let ledStyle = {fill : "black"};
 
@@ -62,7 +62,7 @@ export default function StatusPanelDisplay(props) {
             </Row>
             <Row>
                 <Col xs={12}>
-                    <StatusPanelStatus timeRemaining={timeRemaining} status={status} menuMode={menuMode} isObserver={isObserver} />
+                    <StatusPanelStatus timeRemaining={timeRemaining} status={status} menuMode={menuMode} isObserver={isObserver} errorTag={errorTag} errorMessage={errorMessage}/>
                 </Col>
             </Row>
             <Row>
