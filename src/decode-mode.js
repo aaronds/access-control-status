@@ -1,4 +1,5 @@
 import { decodeMac } from './decode-helpers.js'
+import modeEnumToString from './mode-enum-to-string.js'
 
 export default function decodeModeByVersion(message) {
     let version = "0";
@@ -35,7 +36,7 @@ export default function decodeModeByVersion(message) {
         res.unlockedTimeout = dv.getUint32(offset, true);
         offset += 4;
 
-        res.mode = decodeMode(dv.getUint8(offset));
+        res.mode = modeEnumToString(dv.getUint8(offset));
         offset += 4;
 
         let flags = dv.getUint8(offset);
@@ -54,22 +55,4 @@ export default function decodeModeByVersion(message) {
         return res;
     }
 
-    function decodeMode(mode) {
-        switch (mode) {
-            case 0:
-                return 'CONTROLLER_MODE_INITIALISING';
-            case 1:
-                return 'CONTROLLER_MODE_LOCKED';
-            case 2:
-                return 'CONTROLLER_MODE_UNLOCKED';
-            case 3:
-                return 'CONTROLLER_MODE_IN_USE';
-            case 4:
-                return 'CONTROLLER_MODE_AWAIT_INDUCTOR';
-            case 5:
-                return 'CONTROLLER_MODE_ENROLL';
-            default:
-                return 'CONTROLLER_MODE_UNKNOWN';
-        }
-    }
 }

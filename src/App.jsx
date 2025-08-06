@@ -125,6 +125,7 @@ function App() {
         if (mqttClient) {
             await mqttClient.subscribe("acs/message/power/#");
             await mqttClient.subscribe("acs/message/mode/#");
+            await mqttClient.subscribe("acs/message/error/#");
             setReady(true);
         }
 

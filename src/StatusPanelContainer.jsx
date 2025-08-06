@@ -148,7 +148,7 @@ export default function StatusPanelContainer(props) {
         if (errorTime) {
             let errorTimeRemaining = 30000 - (Date.now() - errorTime);
 
-            if (errorTimeRemining > 0) {
+            if (errorTimeRemaining > 0) {
                 errorTimer = setTimeout(function () {
                     clearError();
                 }, errorTimeRemaining);
@@ -218,6 +218,7 @@ export default function StatusPanelContainer(props) {
                 name={name || id}
                 led={led}
                 isOn={isOn}
+                isObserver={modeMessage.isObserver}
                 timeRemaining={timeRemaining}
                 power={power}
                 freq={freq}

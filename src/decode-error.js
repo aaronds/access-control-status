@@ -22,11 +22,11 @@ export default function decodeErrorByVersion(message) {
             error : 0
         };
 
-        error.tag = dv.getUint32(offset, true);
-        offset += 4;
+        error.tag = dv.getUint16(offset, true);
+        offset += 2;
 
-        error.error = dv.getUint32(offset, true);
-        offset +=4;
+        error.error = dv.getUint16(offset, true);
+        offset +=2;
 
         return error;
     }
