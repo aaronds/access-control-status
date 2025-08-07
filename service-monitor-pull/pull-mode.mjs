@@ -41,7 +41,6 @@ const sqsClient = new SQSClient({});
 
         for (let deviceId in deviceMetrics) {
             if (deviceMetrics.hasOwnProperty(deviceId)) {
-                console.log(deviceMetrics[deviceId]);
                 for (let metricName in deviceMetrics[deviceId]) {
                     if (deviceMetrics[deviceId].hasOwnProperty(metricName) && deviceMetrics[deviceId][metricName].length > 0) {
                         let pushRs = await pushTimeseries(

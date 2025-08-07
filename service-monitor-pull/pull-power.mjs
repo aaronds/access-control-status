@@ -10,7 +10,7 @@ const sqsClient = new SQSClient({});
         };
 
         let result = await sqsClient.send(new ReceiveMessageCommand({
-            MaxNumberOfMessages: 2,
+            MaxNumberOfMessages: 10,
             QueueUrl: process.env.SQS_POWER_URL,
             WaitTimeSeconds: 20,
             VisibilityTimeout: 20
@@ -46,7 +46,6 @@ const sqsClient = new SQSClient({});
 
         for (let deviceId in deviceMetrics) {
             if (deviceMetrics.hasOwnProperty(deviceId)) {
-                console.log(deviceMetrics[deviceId]);
                 for (let metricName in deviceMetrics[deviceId]) {
                     if (deviceMetrics[deviceId].hasOwnProperty(metricName) && deviceMetrics[deviceId][metricName].length > 0) {
                         let pushRs = await pushTimeseries(

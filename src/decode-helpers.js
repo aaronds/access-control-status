@@ -1,3 +1,19 @@
+import { errorMetaData } from 'access-control-firmware';
+
+export function convertError(error) {
+    let tag = errorMetaData.tags.find((t) => t.value == error.tag);
+    if (!tag) {
+        return;
+    }
+
+    let errorMessage = tag.errors.find((e) => e.value == error.error);
+
+    return {
+        tag : tag.name,
+        error : errorMessage?.name
+    }
+}
+
 export function decodeMac (dv) {
     let mac = "";
 

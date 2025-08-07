@@ -1,6 +1,9 @@
 import connectWithSecret from '../src/aws-connect-with-secret.js';
 import decodeMode from '../src/decode-mode.js';
 import decodePower from '../src/decode-power.js';
+import decodeError from '../src/decode-error.js';
+
+import { convertError } from '../src/decode-helpers.js';
 
 import { STSClient, AssumeRoleCommand } from "@aws-sdk/client-sts";
 import { SendMessageCommand, SQSClient } from "@aws-sdk/client-sqs";
@@ -13,6 +16,7 @@ const sqsClient = new SQSClient({});
 (async function () {
     let modeMessages = [];
     let powerMessages = [];
+    let errorMessages = [];
 
     let stsClient = new STSClient({ });
     let clientId = "service-monitor-push-" + Date.now() + "-" + Math.round(Math.random() * 100000)
@@ -58,6 +62,18 @@ const sqsClient = new SQSClient({});
                 modeMessage.ts = Date.now();
                 modeMessages.push(modeMessage);
                 break;
+            case "error":
+                let errorMessage = decodeError(message);
+                let errorText = convertError(errorMessage);
+
+                if (errorText) {
+                    errorText.ts = Date.now();
+                    errorMessages.push(errorMessage);
+                } else {
+                    errorMessage.ts = Date.now();
+                    errorMessages.push(errorMessage);
+                }
+
             default:
                 break;
         }
@@ -71,6 +87,7 @@ const sqsClient = new SQSClient({});
 
     await mqttClient.subscribe("acs/message/mode/#");
     await mqttClient.subscribe("acs/message/power/#");
+    await mqttClient.subscribe("acs/message/error/#");
 
     let submitDelay = MAX_MESSAGE_DELAY;
     
@@ -83,6 +100,10 @@ const sqsClient = new SQSClient({});
 
         if (modeMessages.length) {
             await sendMessages(process.env.SQS_MODE_URL, modeMessages);
+        }
+
+        if (errorMessages.length) {
+            await sendMessages(process.env.SQS_ERROR_URL, errorMessages);
         }
 
         let remainingMessages = powerMessages.length + modeMessages.length;

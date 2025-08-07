@@ -2,25 +2,8 @@ import { useState, useEffect} from 'react';
 
 import StatusPanelDisplay from './StatusPanelDisplay.jsx';
 import StatusPanelJson from './StatusPanelJson.jsx';
+import { convertError } from './decode-helpers.js';
 
-import { errorMetaData } from 'access-control-firmware';
-
-function convertError(error) {
-    let res = {};
-
-    let tag = errorMetaData.tags.find((t) => t.value == error.tag);
-
-    if (!tag) {
-        return;
-    }
-
-    let errorMessage = tag.errors.find((e) => e.value == error.error);
-
-    res.tag = tag.name;
-    res.error = errorMessage?.name;
-
-    return res;
-}
 
 export default function StatusPanelContainer(props) {
     const [status, setStatus] = useState("INITIALISING");
