@@ -1,5 +1,4 @@
-import { decodeMac } from './decode-helpers.js'
-import modeEnumToString from './mode-enum-to-string.js'
+import { decodeMac, modeEnumToString } from './decode-helpers.js'
 
 export default function decodeModeByVersion(message) {
     let version = "0";
