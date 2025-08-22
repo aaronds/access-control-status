@@ -8,6 +8,9 @@ import Form from 'react-bootstrap/Form';
 import Container from 'react-bootstrap/Container';
 import Row from 'react-bootstrap/Row';
 import Col from 'react-bootstrap/Col';
+import Alert from 'react-bootstrap/Alert';
+import ButtonGroup from 'react-bootstrap/ButtonGroup';
+import ToggleButton from 'react-bootstrap/ToggleButton';
 
 import EventEmitter from 'eventemitter2';
 
@@ -20,12 +23,16 @@ import decodeError from './decode-error';
 const loginServiceUrl = "https://zipkxue6v77d7eku7viagzdrpm0odwkx.lambda-url.eu-west-2.on.aws/";
 const editServiceUrl = "https://avlyeh6dbkyueahzwkiqta2j7a0vsmfu.lambda-url.eu-west-2.on.aws/";
 
+const LOCAL_STORAGE_SECRET_KEY = "bhs-acs-secret"
+
 
 function App() {
     const [ready, setReady] = useState(false);
     const [loading, setLoading] = useState(false);
+    const [error, setError] = useState(false);
     const [secret, setSecret] = useState("");
     const [devices, setDevices] = useState([]);
+    const [advanced, setAdvanced] = useState(false);
 
 
     let mqtt = useRef(null);
@@ -38,8 +45,24 @@ function App() {
     let onClickConnect = (e) => {
         e.preventDefault();
         setLoading(true);
+        setError(false);
         tryToConnect(secret);
     }
+
+    useEffect(function () {
+        if (typeof localStorage != "object") {
+            return
+        }
+
+        let secretLS = localStorage.getItem(LOCAL_STORAGE_SECRET_KEY);
+
+        if (secretLS) {
+            setSecret(secretLS);
+            setLoading(true);
+            tryToConnect(secretLS);
+        }
+
+    },[])
 
     useEffect(function () {
         function addNewDevice(evt) {
@@ -73,12 +96,17 @@ function App() {
                 throw new Error("Login failed");
             }
 
+            if (typeof localStorage == "object") {
+                localStorage.setItem(LOCAL_STORAGE_SECRET_KEY, password);
+            }
+
             initialDevices = await fetchJson(result.statusUrl);
             setDevices(initialDevices.slice());
 
             mqttClient = await connectWithUrl(result.mqttUrl, result.clientId)
         } catch (e) {
             setLoading(false);
+            setError(e.message);
             console.warn(e);
             return;
         }
@@ -119,7 +147,11 @@ function App() {
         mqttClient.onConnectionLost = function (e) {
             console.warn(e, e.stack);
             setReady(false);
-            setLoading(false);
+
+            if (secret) {
+                tryToConnect(secret);
+                setLoading(true); 
+            }
         }
 
         if (mqttClient) {
@@ -183,16 +215,36 @@ function App() {
     return (
         <>
             { ready ? 
-                <Container>
+                <Container className={advanced ? "show-advanced" : "hide-advanced"}>
+                    <Row className="d-lg-none">
+                        <Col xs={6}>
+                            <p className="d-block d-md-none">Jump to:</p>
+                            <ul className="d-block d-md-none">
+                                {groupNames.map(function (groupName) {
+                                    return <li><a href={"#" + groupName}>{groupName}</a></li>
+                                })}
+                            </ul>
+                        </Col>
+                        <Col className="text-end" xs={6}>
+                                <ToggleButton 
+                                    type="checkbox"
+                                    variant="secondary"
+                                    checked={advanced}
+                                    value={true}
+                                    onClick={(e) => setAdvanced(!advanced)}>
+                                    More Buttons
+                                </ToggleButton>
+                        </Col>
+                    </Row>
                     {groupNames.map(function (groupName) {
-                        return <>
+                        return <section key={groupName}>
                             <Row><h2>{groupName}</h2></Row>
-                            <Row>
+                            <Row id={groupName}>
                                 {groups[groupName].map(function (device) {
                                     return <StatusPanelContainer key={device.id} id={device.id} name={device.name} eventRef={events} mode={device.mode} device={device} editDevice={editDevice} />
                                 })}
                             </Row>
-                        </>
+                        </section>
                     })}
                     <Row className="gx-0">
                         {(noGroup || []).map(function (device) {
@@ -203,6 +255,7 @@ function App() {
                 : 
                 <Container>
                     <p className="text-start">Check the members only section of the wiki for the password.</p>
+                    { error ? <Alert variant="danger">{error}</Alert> : null }
                     <Form onSubmit={onClickConnect}>
                         <Form.Group className="mb-3" controlId="formBasicPassword">
                             <Form.Control type="password" placeholder="Password" value={secret} onChange={onChangeSecret} />

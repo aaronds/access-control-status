@@ -1,9 +1,10 @@
 <!doctype html>
 <html lang="en">
-  <had>
+  <head>
     <meta charset="UTF-8" />
     <link rel="icon" type="image/svg+xml" href="./acs-logo-icon.svg" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="theme-color" content="#f08818" />
     <title>Access Control Status</title>
     <link
       rel="stylesheet"
@@ -69,10 +70,26 @@
                 height: 2.6rem;
             }
         }
+
+        .hs-logo {
+            text-align: center;
+        }
+
+        .hs-logo img {
+            width: 100%;
+            position: relative;
+            top: 50%;
+            transform: translateY(-50%);
+            max-width: 6em;
+        }
+
     </style>
     <div class="container">
         <div class="row">
-            <div class="text-start mb-4 col-12">
+            <div class = "mb-4 col-2 col-xl-1 hs-logo">
+                <img src = "https://bristolhackspace.org/static/images/hackspace%20progress.svg" />
+            </div>
+            <div class="text-start mb-4 col-10 col-xl-11">
                 <h1>Access Control Status</h1>
                 <h3>Bristol Hackspace</h3>
             </div>

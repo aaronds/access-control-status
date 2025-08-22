@@ -35,16 +35,16 @@ export default function StatusPanelDisplay(props) {
     }
 
 
-    return <Col sm={6} md={3} lg={3} xl={2} className = "acs-panel pb-4 text-center"><Container>
+    return <Col xs={6} sm={6} md={3} lg={3} xl={3} xxl={2} className = "acs-panel pb-4 text-center"><Container className="g-0">
         <Col md={12} style={{borderRadius: "3px", border: "1px solid #bbb", background: "#ddd"}} className="mx-0">
             <Row className="acs-top">
-                <Col className="d-none d-lg-block acs-screw" md={2}>
+                <Col className="d-none d-lg-block acs-screw" lg={2}>
                     <img src={screwB} style={{}} />
                 </Col>
                 <Col xs={12} lg={8}>
                     <h3 style={{fontFamily: '"Anybody", sans-serif', fontWeight: "300", textTransform: "uppercase"}}>{name}</h3>
                 </Col>
-                <Col className="d-none d-lg-block acs-screw" md={2}>
+                <Col className="d-none d-lg-block acs-screw" lg={2}>
                     <img src={screwB} style={{}} />
                 </Col>
             </Row>
