@@ -254,7 +254,7 @@ function App() {
                 </Container>
                 : 
                 <Container>
-                    <p className="text-start">Check the members only section of the wiki for the password.</p>
+                    <p className="text-start">Check the <a href="https://wiki.bristolhackspace.org/access_control/status">wiki page</a> for a link to the current password.</p>
                     { error ? <Alert variant="danger">{error}</Alert> : null }
                     <Form onSubmit={onClickConnect}>
                         <Form.Group className="mb-3" controlId="formBasicPassword">
