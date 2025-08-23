@@ -9,7 +9,7 @@ export default function () {
     return (
         <>
             <Container>
-                <Row className="gx-0">
+                <Row>
                     <StatusPanelDisplay id = "locked" name = "Ready" led = "breathe" isOn={false} timeRemaining={1} status = "LOCKED" power = {0} freq = {0} />
                     <StatusPanelDisplay id = "unlockedNoPower" name = "On" led = "off" isOn={true} timeRemaining={1} status = "UNLOCKED" power = {0} freq = {0} />
                     <StatusPanelDisplay id = "unlockedInUse" name = "In Use" led = "off" isOn={true} timeRemaining={1} status = "IN USE" power = {400} freq = {50.13} />
