@@ -41,6 +41,7 @@ const sqsClient = new SQSClient({});
                 deviceMetrics[deviceId]['env_temperature'].push({value : envPmMessage.temperature, timestamp : envPmMessage.ts });
                 deviceMetrics[deviceId]['env_relative_humidity'].push({value : envPmMessage.relative_humidity, timestamp : envPmMessage.ts });
                 deviceMetrics[deviceId]['env_pressure'].push({value : envPmMessage.pressure, timestamp : envPmMessage.ts });
+                deviceMetrics[deviceId]['env_pm_obstructed'].push({value : (envPmMessage.flags || {}).obstructed, timestamp : envPmMessage.ts });
                 deviceLocation[deviceId] = envPmMessage.location;
 
             }
