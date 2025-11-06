@@ -2,6 +2,7 @@ import connectWithSecret from '../src/aws-connect-with-secret.js';
 import decodeMode from '../src/decode-mode.js';
 import decodePower from '../src/decode-power.js';
 import decodeError from '../src/decode-error.js';
+import decodeEnvPm from '../src/decode-env-pm.js';
 
 import { convertError } from '../src/decode-helpers.js';
 
@@ -17,6 +18,7 @@ const sqsClient = new SQSClient({});
     let modeMessages = [];
     let powerMessages = [];
     let errorMessages = [];
+    let pmMessages = [];
 
     let stsClient = new STSClient({ });
     let clientId = "service-monitor-push-" + Date.now() + "-" + Math.round(Math.random() * 100000)
@@ -74,6 +76,11 @@ const sqsClient = new SQSClient({});
                     errorMessages.push(errorMessage);
                 }
 
+            case "pm":
+                let pmMessage = decodeEnvPm(message);
+                pmMessage.ts = Date.now();
+                pmMessages.push(pmMessage);
+
             default:
                 break;
         }
@@ -88,6 +95,7 @@ const sqsClient = new SQSClient({});
     await mqttClient.subscribe("acs/message/mode/#");
     await mqttClient.subscribe("acs/message/power/#");
     await mqttClient.subscribe("acs/message/error/#");
+    await mqttClient.subscribe("env/message/pm/#");
 
     let submitDelay = MAX_MESSAGE_DELAY;
     
@@ -106,7 +114,11 @@ const sqsClient = new SQSClient({});
             await sendMessages(process.env.SQS_ERROR_URL, errorMessages);
         }
 
-        let remainingMessages = powerMessages.length + modeMessages.length;
+        if (pmMessages.length) {
+            await sendMessages(process.env.SQS_PM_URL, errorMessages);
+        }
+
+        let remainingMessages = errorMessages.length + powerMessages.length + modeMessages.length + pmMessages.length;
 
         if (remainingMessages > (MAX_MESSAGE_COUNT / 2) && submitDelay > 1000) {
             submitDelay -= 1000; 
