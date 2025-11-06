@@ -25,6 +25,9 @@ export default function decodeEnvPmByVersion(message) {
             relative_humidity : 0,
             pressure : 0,
             location : 0
+            flags : {
+                obstructed : false
+            }
         }
 
         res.pm1 = dv.getUint16(offset, true);
@@ -46,6 +49,11 @@ export default function decodeEnvPmByVersion(message) {
         offset +=4;
 
         res.location = getLocation(dv.getUint16(offset, true));
+        offset +=4;
+
+        let flags = dv.getUint16(offset, true);
+
+        res.flags.obstructed = (flags & 1) ? true : false;
 
         return res;
 
