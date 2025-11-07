@@ -13,7 +13,7 @@ const sqsClient = new SQSClient({});
 
         let result = await sqsClient.send(new ReceiveMessageCommand({
             MaxNumberOfMessages: 10,
-            QueueUrl: process.env.SQS_POWER_URL,
+            QueueUrl: process.env.SQS_ENV_PM_URL,
             WaitTimeSeconds: 20,
             VisibilityTimeout: 20
         }));
