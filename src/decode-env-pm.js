@@ -24,36 +24,35 @@ export default function decodeEnvPmByVersion(message) {
             temperature : 0,
             relative_humidity : 0,
             pressure : 0,
-            location : 0
+            location : 0,
             flags : {
                 obstructed : false
             }
         }
 
         res.pm1 = dv.getUint16(offset, true);
-        offset += 4;
+        offset += 2;
 
         res.pm2_5 = dv.getUint16(offset, true);
-        offset +=4;
+        offset +=2;
 
         res.pm10 = dv.getUint16(offset, true);
-        offset +=4;
+        offset +=2;
 
         res.temperature = dv.getInt16(offset, true) / 100;
-        offset +=4;
+        offset +=2;
 
         res.relative_humidity = dv.getUint16(offset, true) / 100;
-        offset +=4;
+        offset +=2;
 
-        res.pressure = dv.getUint16(offset, true);
-        offset +=4;
+        res.pressure = dv.getUint16(offset, true) / 100;
+        offset +=2;
+        
+        let flags = dv.getUint16(offset, true);
+        res.flags.obstructed = (flags & 1) ? true : false;
+        offset +=2;
 
         res.location = getLocation(dv.getUint16(offset, true));
-        offset +=4;
-
-        let flags = dv.getUint16(offset, true);
-
-        res.flags.obstructed = (flags & 1) ? true : false;
 
         return res;
 

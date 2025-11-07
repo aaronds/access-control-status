@@ -79,6 +79,7 @@ const sqsClient = new SQSClient({});
             case "pm":
                 let pmMessage = decodeEnvPm(message);
                 pmMessage.ts = Date.now();
+                console.log(pmMessage);
                 pmMessages.push(pmMessage);
 
             default:
@@ -115,7 +116,7 @@ const sqsClient = new SQSClient({});
         }
 
         if (pmMessages.length) {
-            await sendMessages(process.env.SQS_PM_URL, errorMessages);
+            await sendMessages(process.env.SQS_ENV_PM_URL, errorMessages);
         }
 
         let remainingMessages = errorMessages.length + powerMessages.length + modeMessages.length + pmMessages.length;
