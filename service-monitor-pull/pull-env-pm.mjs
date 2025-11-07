@@ -27,6 +27,8 @@ const sqsClient = new SQSClient({});
         for (let message of messages) {
             let envPmMessages = JSON.parse(message.Body);
 
+	    console.log(envPmMessages);
+
             for (let envPmMessage of envPmMessages) {
 
                 let deviceId = envPmMessage.id;
@@ -35,7 +37,7 @@ const sqsClient = new SQSClient({});
                     deviceMetrics[deviceId] = envPmMetrics();
                 }
 
-                if (!envPmMessage.flags?.obstructed) {
+                if (envPmMessage.pm1 + envPmMessage.pm2_5 + envPmMessage.pm10 > 0) {
                     deviceMetrics[deviceId]['env_pm1'].push({value : envPmMessage.pm1, timestamp : envPmMessage.ts });
                     deviceMetrics[deviceId]['env_pm2_5'].push({value : envPmMessage.pm2_5, timestamp : envPmMessage.ts });
                     deviceMetrics[deviceId]['env_pm10'].push({value : envPmMessage.pm10, timestamp : envPmMessage.ts });
@@ -44,7 +46,7 @@ const sqsClient = new SQSClient({});
                 deviceMetrics[deviceId]['env_temperature'].push({value : envPmMessage.temperature, timestamp : envPmMessage.ts });
                 deviceMetrics[deviceId]['env_relative_humidity'].push({value : envPmMessage.relative_humidity, timestamp : envPmMessage.ts });
                 deviceMetrics[deviceId]['env_pressure'].push({value : envPmMessage.pressure, timestamp : envPmMessage.ts });
-                deviceMetrics[deviceId]['env_pm_obstructed'].push({value : (envPmMessage.flags || {}).obstructed, timestamp : envPmMessage.ts });
+                deviceMetrics[deviceId]['env_pm_obstructed'].push({value : (envPmMessage.flags || {}).obstructed ? 1 : 0, timestamp : envPmMessage.ts });
                 deviceLocation[deviceId] = envPmMessage.location;
 
             }
@@ -53,12 +55,13 @@ const sqsClient = new SQSClient({});
         for (let deviceId in deviceMetrics) {
             if (deviceMetrics.hasOwnProperty(deviceId)) {
                 for (let metricName in deviceMetrics[deviceId]) {
+		    console.log("ENV PM:", metricName);
                     if (deviceMetrics[deviceId].hasOwnProperty(metricName) && deviceMetrics[deviceId][metricName].length > 0) {
                         let pushRs = await pushTimeseries(
                             {
                                 labels : {
                                     __name__ : metricName,
-                                    project : "acs",
+                                    project : "env",
                                     site : process.env.ACS_SITE,
                                     deviceId : deviceId,
                                     location : deviceLocation[deviceId]
@@ -84,7 +87,7 @@ const sqsClient = new SQSClient({});
 
         if (messages.length) {
             await sqsClient.send(new DeleteMessageBatchCommand({
-                QueueUrl: process.env.SQS_POWER_URL,
+                QueueUrl: process.env.SQS_ENV_PM_URL,
                 Entries : messages.map(function (message) {
                     return {
                         Id : message.MessageId,
@@ -111,6 +114,7 @@ function envPmMetrics() {
         "env_pm10" : [],
         "env_temperature" : [],
         "env_relative_humidity" : [],
-        "env_pressure" : []
+        "env_pressure" : [],
+	"env_pm_obstructed": []
     };
 }

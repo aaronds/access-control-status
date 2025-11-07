@@ -9,6 +9,7 @@ lerna-debug.log*
 
 aaron-*
 ubuntu-*
+bhs-acs-*
 
 node_modules
 dist

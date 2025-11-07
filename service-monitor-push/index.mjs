@@ -116,7 +116,7 @@ const sqsClient = new SQSClient({});
         }
 
         if (pmMessages.length) {
-            await sendMessages(process.env.SQS_ENV_PM_URL, errorMessages);
+            await sendMessages(process.env.SQS_ENV_PM_URL, pmMessages);
         }
 
         let remainingMessages = errorMessages.length + powerMessages.length + modeMessages.length + pmMessages.length;
