@@ -57,7 +57,7 @@ const sqsClient = new SQSClient({});
                                                 __name__ : metricName,
                                                 project : "acs",
                                                 site : process.env.ACS_SITE,
-                                                deviceId : deviceId
+                                                deviceId : deviceId,
                                                 tag : tag,
                                                 error : error
                                             },
