@@ -35,9 +35,12 @@ const sqsClient = new SQSClient({});
                     deviceMetrics[deviceId] = envPmMetrics();
                 }
 
-                deviceMetrics[deviceId]['env_pm1'].push({value : envPmMessage.pm1, timestamp : envPmMessage.ts });
-                deviceMetrics[deviceId]['env_pm2_5'].push({value : envPmMessage.pm2_5, timestamp : envPmMessage.ts });
-                deviceMetrics[deviceId]['env_pm10'].push({value : envPmMessage.pm10, timestamp : envPmMessage.ts });
+                if (!envPmMessage.flags?.obstructed) {
+                    deviceMetrics[deviceId]['env_pm1'].push({value : envPmMessage.pm1, timestamp : envPmMessage.ts });
+                    deviceMetrics[deviceId]['env_pm2_5'].push({value : envPmMessage.pm2_5, timestamp : envPmMessage.ts });
+                    deviceMetrics[deviceId]['env_pm10'].push({value : envPmMessage.pm10, timestamp : envPmMessage.ts });
+                }
+
                 deviceMetrics[deviceId]['env_temperature'].push({value : envPmMessage.temperature, timestamp : envPmMessage.ts });
                 deviceMetrics[deviceId]['env_relative_humidity'].push({value : envPmMessage.relative_humidity, timestamp : envPmMessage.ts });
                 deviceMetrics[deviceId]['env_pressure'].push({value : envPmMessage.pressure, timestamp : envPmMessage.ts });
