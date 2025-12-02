@@ -52,38 +52,43 @@ const sqsClient = new SQSClient({});
         let topic = message.topic;
         let messageType = topic.split("/")[2];
 
-        switch(messageType) {
-            case "power":
-                let powerMessage = decodePower(message);
-                powerMessage.ts = Date.now();
-                powerMessages.push(powerMessage);
-                break;
+        try {
 
-            case "mode":
-                let modeMessage = decodeMode(message);
-                modeMessage.ts = Date.now();
-                modeMessages.push(modeMessage);
-                break;
-            case "error":
-                let errorMessage = decodeError(message);
-                let errorText = convertError(errorMessage);
+            switch(messageType) {
+                case "power":
+                    let powerMessage = decodePower(message);
+                    powerMessage.ts = Date.now();
+                    powerMessages.push(powerMessage);
+                    break;
 
-                if (errorText) {
-                    errorText.ts = Date.now();
-                    errorMessages.push(errorMessage);
-                } else {
-                    errorMessage.ts = Date.now();
-                    errorMessages.push(errorMessage);
-                }
+                case "mode":
+                    let modeMessage = decodeMode(message);
+                    modeMessage.ts = Date.now();
+                    modeMessages.push(modeMessage);
+                    break;
+                case "error":
+                    let errorMessage = decodeError(message);
+                    let errorText = convertError(errorMessage);
 
-            case "pm":
-                let pmMessage = decodeEnvPm(message);
-                pmMessage.ts = Date.now();
-                console.log(pmMessage);
-                pmMessages.push(pmMessage);
+                    if (errorText) {
+                        errorText.ts = Date.now();
+                        errorMessages.push(errorMessage);
+                    } else {
+                        errorMessage.ts = Date.now();
+                        errorMessages.push(errorMessage);
+                    }
 
-            default:
-                break;
+                case "pm":
+                    let pmMessage = decodeEnvPm(message);
+                    pmMessage.ts = Date.now();
+                    console.log(pmMessage);
+                    pmMessages.push(pmMessage);
+
+                default:
+                    break;
+            }
+        } catch (e) {
+            console.warn(e, e.stack);
         }
 
     }
