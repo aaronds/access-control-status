@@ -3,6 +3,7 @@ import { decodeMac } from './decode-helpers.js'
 export default function decodeErrorByVersion(message) {
     let version = "0";
     let payload = message.payloadBytes;
+    console.log(payload.byteLength);
     let buffer = payload.buffer.slice(payload.byteOffset, payload.byteLength + payload.byteOffset);
 
     switch (version) {
