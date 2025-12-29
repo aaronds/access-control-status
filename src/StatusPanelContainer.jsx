@@ -4,6 +4,8 @@ import StatusPanelDisplay from './StatusPanelDisplay.jsx';
 import StatusPanelJson from './StatusPanelJson.jsx';
 import { convertError } from './decode-helpers.js';
 
+import modeToText from './mode-text.js';
+
 
 export default function StatusPanelContainer(props) {
     const [status, setStatus] = useState("INITIALISING");
@@ -41,7 +43,7 @@ export default function StatusPanelContainer(props) {
         }
 
         function modeUpdate(mode) {
-            let modeText = mode.mode.replace(/^CONTROLLER_MODE_/,"").replace(/_/, " ");
+            let modeText = modeToText(mode);
 
             setStatus(modeText);
             setModeMessage(mode);
