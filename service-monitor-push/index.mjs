@@ -72,7 +72,7 @@ const sqsClient = new SQSClient({});
 
                     if (errorText) {
                         errorText.ts = Date.now();
-                        errorMessages.push(errorMessage);
+                        errorMessages.push(errorText);
                     } else {
                         errorMessage.ts = Date.now();
                         errorMessages.push(errorMessage);

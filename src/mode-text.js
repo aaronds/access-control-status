@@ -1,4 +1,4 @@
-export default modeToText(mode) {
+export default function modeToText(mode) {
     switch (mode.mode) {
         case "CONTROLLER_MODE_LOCKED":
             if (mode.isObserver) {

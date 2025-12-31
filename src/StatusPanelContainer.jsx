@@ -154,7 +154,7 @@ export default function StatusPanelContainer(props) {
     useEffect(function () {
         if (initialMode) {
             let mode = initialMode;
-            let modeText = mode.mode.replace(/^CONTROLLER_MODE_/,"").replace(/_/, " ");
+            let modeText = modeToText(mode);
 
             setStatus(modeText);
 

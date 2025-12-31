@@ -251,6 +251,24 @@ function App() {
                             return <StatusPanelContainer key={device.id} id={device.id} name={device.name} eventRef={events} mode={device.mode} device={device} editDevice={editDevice} />
                         })}
                     </Row>
+                    <Row>
+                        <h3>Status Definitions</h3>
+                        <dl>
+                            <dt>AVAILABLE</dt>
+                            <dd>The tool is currently off, and available for members.</dd>
+                            <dt>WAITING</dt>
+                            <dd>Someone is logged in and the tool is powered up. The tool is most likely not available to use as it will be used shortly.
+                            </dd>
+                            <dt>IN USE</dt>
+                            <dd>The tool is actively printing / cutting / working. It is not availalbe to use.</dd>
+                            <dt>FINISHED</dt>
+                            <dd>Someone is logged in to the tool and it has been used, they could be preparing for another run. 3D printers will stay in this state after a print finishes and are likely available for other members.</dd>
+                            <dt>OFF</dt>
+                            <dd>The sensor has not detected any power.</dd>
+                            <dt>ON</dt>
+                            <dd>The sensor is currently detecting power.</dd>
+                        </dl>
+                    </Row>
                 </Container>
                 : 
                 <Container>
