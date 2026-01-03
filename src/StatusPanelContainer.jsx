@@ -77,7 +77,7 @@ export default function StatusPanelContainer(props) {
 
             if (offlineTimer) {
                 clearTimeout(offlineTimer);
-                offlineTimer = setTimeout(onOffline,30100);
+                offlineTimer = setTimeout(onOffline,40100);
             }
         }
 
@@ -93,7 +93,7 @@ export default function StatusPanelContainer(props) {
 
             if (offlineTimer) {
                 clearTimeout(offlineTimer);
-                offlineTimer = setTimeout(onOffline,30100);
+                offlineTimer = setTimeout(onOffline,40100);
             }
             setPower(power.power);
         }
@@ -121,7 +121,7 @@ export default function StatusPanelContainer(props) {
 
             if (offlineTimer) {
                 clearTimeout(offlineTimer);
-                offlineTimer = setTimeout(onOffline,30100);
+                offlineTimer = setTimeout(onOffline,40100);
             }
         }
 
@@ -129,7 +129,7 @@ export default function StatusPanelContainer(props) {
         eventRef.current.on(id + ".power", powerUpdate);
         eventRef.current.on(id + ".error", errorUpdate);
 
-        offlineTimer = setTimeout(onOffline,30100);
+        offlineTimer = setTimeout(onOffline,40100);
         if (errorTime) {
             let errorTimeRemaining = 30000 - (Date.now() - errorTime);
 

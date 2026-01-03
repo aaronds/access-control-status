@@ -221,7 +221,7 @@ function App() {
                             <p className="d-block d-md-none">Jump to:</p>
                             <ul className="d-block d-md-none">
                                 {groupNames.map(function (groupName) {
-                                    return <li><a href={"#" + groupName}>{groupName}</a></li>
+                                    return <li key={groupName}><a href={"#" + groupName}>{groupName}</a></li>
                                 })}
                             </ul>
                         </Col>

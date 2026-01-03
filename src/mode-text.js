@@ -13,7 +13,7 @@ export default function modeToText(mode) {
             }
 
             if (mode.monitorEnabled) {
-                if (mode.used) {
+                if (mode.isUsed) {
                     return "FINISHED";
                 } else {
                     return "WAITING";
