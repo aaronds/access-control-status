@@ -3,16 +3,15 @@ import decodeMode from '../src/decode-mode.js';
 import decodePower from '../src/decode-power.js';
 import decodeError from '../src/decode-error.js';
 import decodeEnvPm from '../src/decode-env-pm.js';
-
 import { convertError } from '../src/decode-helpers.js';
+import { readFile } from 'node:fs/promises';
+
 
 import { STSClient, AssumeRoleCommand } from "@aws-sdk/client-sts";
-import { SendMessageCommand, SQSClient } from "@aws-sdk/client-sqs";
+import amqplib from 'amqplib';
 
 const MAX_MESSAGE_COUNT = 100;
 const MAX_MESSAGE_DELAY = 20000; 
-
-const sqsClient = new SQSClient({});
 
 (async function () {
     let modeMessages = [];
@@ -25,6 +24,58 @@ const sqsClient = new SQSClient({});
     let mqttClient = null;
     let webClientRole = null;
     let accessKeyId, secretAccessKey, sessionToken;
+    let amqpOptions = {};
+    let protocol = "amqp";
+
+    if (process.env.AMQP_TLS_KEY_FILE) {
+        amqpOptions.key = await readFile(process.env.AMQP_TLS_KEY_FILE); 
+        amqpOptions.cert = await readFile(process.env.AMQP_TLS_CERT_FILE); 
+        protocol = "amqps";
+    }
+
+    if (process.env.AMQP_TLS_CA_FILE) {
+        amqpOptions.ca = [await readFile(process.env.AMQP_TLS_CA_FILE)]; 
+        protocol = "amqps";
+    }
+
+    const qConnection = await amqplib.connect(
+        {
+            protocol : protocol,
+            hostname: process.env.AMQP_HOST,
+            username : "oauth2",
+            password : process.env.AMQP_JWT_TOKEN
+        },
+        amqpOptions
+    );
+    
+    qConnection.on('error', function (err) {
+        console.warn(err, err.stack);
+        process.exit(1);
+    });
+
+    const qChannel = await qConnection.createChannel();
+    qChannel.on('error', function (err) {
+        console.warn(err, err.stack);
+        process.exit(1);
+    });
+
+    [
+        process.env.AMQP_POWER_QUEUE,
+        process.env.AMQP_MODE_QUEUE,
+        process.env.AMQP_ERROR_QUEUE,
+        process.env.AMQP_ENV_PM_QUEUE
+    ].forEach(function (queueName) {
+        if (queueName) {
+            qChannel.assertQueue(
+                queueName,
+                {
+                    "durable" : true,
+                    "arguments" : {
+                    }
+                }
+            )
+        }
+    })
 
     try {
         webClientRole = await stsClient.send(new AssumeRoleCommand({ RoleArn : process.env.webClientRole, RoleSessionName : clientId }));
@@ -81,7 +132,6 @@ const sqsClient = new SQSClient({});
                 case "pm":
                     let pmMessage = decodeEnvPm(message);
                     pmMessage.ts = Date.now();
-                    console.log(pmMessage);
                     pmMessages.push(pmMessage);
 
                 default:
@@ -109,19 +159,19 @@ const sqsClient = new SQSClient({});
         await delay(submitDelay);
 
         if (powerMessages.length) {
-            await sendMessages(process.env.SQS_POWER_URL, powerMessages);
+            await sendMessages(qChannel, process.env.AMQP_POWER_QUEUE, powerMessages);
         }
 
         if (modeMessages.length) {
-            await sendMessages(process.env.SQS_MODE_URL, modeMessages);
+            await sendMessages(qChannel, process.env.AMQP_MODE_QUEUE, modeMessages);
         }
 
         if (errorMessages.length) {
-            await sendMessages(process.env.SQS_ERROR_URL, errorMessages);
+            await sendMessages(qChannel, process.env.AMQP_ERROR_QUEUE, errorMessages);
         }
 
         if (pmMessages.length) {
-            await sendMessages(process.env.SQS_ENV_PM_URL, pmMessages);
+            await sendMessages(qChannel, process.env.AMQP_ENV_PM_QUEUE, pmMessages);
         }
 
         let remainingMessages = errorMessages.length + powerMessages.length + modeMessages.length + pmMessages.length;
@@ -146,19 +196,17 @@ function delay(time) {
     return new Promise((accept) => setTimeout(accept, time));
 }
 
-async function sendMessages(queueUrl, messageArray) {
-    let sendCount = Math.min(messageArray.length, MAX_MESSAGE_COUNT);
-    let messageArrayToSend = messageArray.splice(0, sendCount);
-
+async function sendMessages(qChannel, queueName, messageArray) {
+    let sendCount = 0;
+    let rv = true;
+    
     try {
-        await sqsClient.send(new SendMessageCommand({
-            QueueUrl : queueUrl,
-            MessageGroupId : "bhs",
-            MessageBody : JSON.stringify(messageArrayToSend)
-        }));
-
+        while (rv && messageArray.length) {
+            let next = messageArray.shift();
+            rv = qChannel.sendToQueue(queueName, Buffer.from(JSON.stringify(next)));
+            sendCount++;
+        }
     } catch (e) {
-        messageArray.splice.apply(messageArray, [messageArrayToSend.length,0].concat(messageArrayToSend)); 
         console.log(e, e.stack);
         return 0;
     }

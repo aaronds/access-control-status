@@ -10,6 +10,7 @@
   "license": "BSD",
   "dependencies": {
     "@aws-sdk/client-sqs": "^3.858.0",
+    "amqplib": "^0.10.9",
     "prometheus-remote-write": "^0.5.1"
   }
 }

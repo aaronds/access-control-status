@@ -1,42 +1,38 @@
-import { ReceiveMessageCommand, DeleteMessageCommand, SQSClient, DeleteMessageBatchCommand } from "@aws-sdk/client-sqs";
+import Pull from './pull-amqp-queue.mjs';
 import { pushTimeseries } from "prometheus-remote-write";
 
-const sqsClient = new SQSClient({});
-
 (async function pullMode() {
+    let pull = null,
+        batch = null;
+
+    pull = new Pull(process.env.AMQP_MODE_QUEUE,null, { timeout : 5000, count : 20 });
+
+    let qChannel = await pull.connect();
+
+    console.log("Connected to queue:", process.env.AMQP_MODE_QUEUE);
 
     while (true) {        
         let deviceMetrics = {
         };
 
-        let result = await sqsClient.send(new ReceiveMessageCommand({
-            MaxNumberOfMessages: 2,
-            QueueUrl: process.env.SQS_MODE_URL,
-            WaitTimeSeconds: 20,
-            VisibilityTimeout: 20
-        }));
+        let messages = await pull.batch.get(); 
 
-        let messages = result.Messages;
-
-        if (!messages) {
+        if (!messages || messages.length < 1) {
             continue;
         }
 
         for (let message of messages) {
-            let modeMessages = JSON.parse(message.Body);
+            let modeMessage = JSON.parse(message.content.toString());
 
-            for (let modeMessage of modeMessages) {
+            let deviceId = modeMessage.id;
 
-                let deviceId = modeMessage.id;
-
-                if (!deviceMetrics[deviceId]) {
-                    deviceMetrics[deviceId] = modeMetrics();
-                }
-
-                deviceMetrics[deviceId]['acs_metric_unlocked'].push({value : ['CONTROLLER_MODE_UNLOCKED', 'CONTROLLER_MODE_IN_USE'].indexOf(modeMessage.mode) >= 0 ? 1 : 0, timestamp : modeMessage.ts });
-                deviceMetrics[deviceId]['acs_metric_inUse'].push({value : ['CONTROLLER_MODE_IN_USE'].indexOf(modeMessage.mode) >= 0 ? 1 : 0, timestamp : modeMessage.ts });
-                deviceMetrics[deviceId]['acs_metric_energyTotal'].push({value : (modeMessage.energyTotal || 0), timestamp : modeMessage.ts });
+            if (!deviceMetrics[deviceId]) {
+                deviceMetrics[deviceId] = modeMetrics();
             }
+
+            deviceMetrics[deviceId]['acs_metric_unlocked'].push({value : ['CONTROLLER_MODE_UNLOCKED', 'CONTROLLER_MODE_IN_USE'].indexOf(modeMessage.mode) >= 0 ? 1 : 0, timestamp : modeMessage.ts });
+            deviceMetrics[deviceId]['acs_metric_inUse'].push({value : ['CONTROLLER_MODE_IN_USE'].indexOf(modeMessage.mode) >= 0 ? 1 : 0, timestamp : modeMessage.ts });
+            deviceMetrics[deviceId]['acs_metric_energyTotal'].push({value : (modeMessage.energyTotal || 0), timestamp : modeMessage.ts });
         }
 
         for (let deviceId in deviceMetrics) {
@@ -57,7 +53,8 @@ const sqsClient = new SQSClient({});
                                 url : process.env.PROMETHEUS_RW_URL,
                                 fetch : fetch,
                                 headers: {
-                                    "X-Scope-OrgID": process.env.ACS_ORG_ID
+                                    "X-Scope-OrgID": process.env.ACS_ORG_ID,
+                                    "X-Api-Token": process.env.PROMETHEUS_JWT_TOKEN
                                 }
                             }
                         );
@@ -71,15 +68,9 @@ const sqsClient = new SQSClient({});
         }
 
         if (messages.length) {
-            await sqsClient.send(new DeleteMessageBatchCommand({
-                QueueUrl: process.env.SQS_MODE_URL,
-                Entries : messages.map(function (message) {
-                    return {
-                        Id : message.MessageId,
-                        ReceiptHandle : message.ReceiptHandle
-                    }
-                })
-            }));
+            messages.forEach(function (msg) {
+                qChannel.ack(msg);
+            });
         }
 
         console.log("Processed", messages.length);
