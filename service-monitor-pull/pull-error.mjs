@@ -1,32 +1,34 @@
-import { ReceiveMessageCommand, DeleteMessageCommand, SQSClient, DeleteMessageBatchCommand } from "@aws-sdk/client-sqs";
+import Pull from './pull-amqp-queue.mjs';
 import { pushTimeseries } from "prometheus-remote-write";
 
-const sqsClient = new SQSClient({});
-
 (async function pullMode() {
+    
+    let pull = new Pull(process.env.AMQP_ERROR_QUEUE,null, { timeout : 5000, count : 60 });
+    let qChannel = await pull.connect();
+    
+    console.log("Connected to queue:", process.env.AMQP_ERROR_QUEUE);
 
     while (true) {        
         let deviceMetrics = {
         };
-
-        let result = await sqsClient.send(new ReceiveMessageCommand({
-            MaxNumberOfMessages: 2,
-            QueueUrl: process.env.SQS_ERROR_URL,
-            WaitTimeSeconds: 20,
-            VisibilityTimeout: 20
-        }));
-
-        let messages = result.Messages;
+        
+        let messages = await pull.batch.get(); 
 
         if (!messages) {
             continue;
         }
 
         for (let message of messages) {
-            let errorMessages = JSON.parse(message.Body);
+            let errorMessageOrMultiple = JSON.parse(message.content.toString());
+            let messages = [];
 
-            for (let errorMessage of errorMessages) {
+            if (typeof errorMessageOrMultiple.forEach == "function") {
+                messages = errorMessageOrMultiple;
+            } else {
+                messages = [errorMessageOrMultiple];
+            }
 
+            for (let errorMessage in messages) {
                 let deviceId = errorMessage.id;
 
                 if (!deviceMetrics[deviceId]) {
@@ -67,7 +69,8 @@ const sqsClient = new SQSClient({});
                                             url : process.env.PROMETHEUS_RW_URL,
                                             fetch : fetch,
                                             headers: {
-                                                "X-Scope-OrgID": process.env.ACS_ORG_ID
+                                                "X-Scope-OrgID": process.env.ACS_ORG_ID,
+                                                "X-Api-Token": process.env.PROMETHEUS_JWT_TOKEN
                                             }
                                         }
                                     );
@@ -87,7 +90,7 @@ const sqsClient = new SQSClient({});
                                         __name__ : metricName,
                                         project : "acs",
                                         site : process.env.ACS_SITE,
-                                        deviceId : deviceId
+                                        deviceId : deviceId,
                                         tag : tag,
                                         error : error
                                     },
@@ -97,7 +100,8 @@ const sqsClient = new SQSClient({});
                                     url : process.env.PROMETHEUS_RW_URL,
                                     fetch : fetch,
                                     headers: {
-                                        "X-Scope-OrgID": process.env.ACS_ORG_ID
+                                        "X-Scope-OrgID": process.env.ACS_ORG_ID,
+                                        "X-Api-Token": process.env.PROMETHEUS_JWT_TOKEN
                                     }
                                 }
                             );
@@ -108,15 +112,9 @@ const sqsClient = new SQSClient({});
         }
 
         if (messages.length) {
-            await sqsClient.send(new DeleteMessageBatchCommand({
-                QueueUrl: process.env.SQS_MODE_URL,
-                Entries : messages.map(function (message) {
-                    return {
-                        Id : message.MessageId,
-                        ReceiptHandle : message.ReceiptHandle
-                    }
-                })
-            }));
+            messages.forEach(function (msg) {
+                qChannel.ack(msg);
+            });
         }
 
         console.log("Processed", messages.length);
@@ -129,10 +127,8 @@ const sqsClient = new SQSClient({});
     process.exit(1);
 })
 
-function modeMetrics() {
+function errorMetrics() {
     return {
-        "acs_metric_unlocked" : [],
-        "acs_metric_inUse" : [],
-        "acs_metric_energyTotal" : []
+        "acs_metric_error" : []
     };
 }

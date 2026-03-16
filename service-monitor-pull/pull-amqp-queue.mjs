@@ -1,5 +1,6 @@
 import Batch from './get-amqp-batch.mjs'
 import amqplib from 'amqplib';
+import { readFile } from 'node:fs/promises';
 
 export default function Pull(queue, pullOptions, batchOptions) {
     let qConnection = null;
@@ -24,8 +25,8 @@ export default function Pull(queue, pullOptions, batchOptions) {
 
         qConnection = await amqplib.connect(
             {
-                protocal : "amqp",
-                host: "localhost",
+                protocol : protocol,
+                hostname: process.env.AMQP_HOST,
                 username : "oauth2",
                 password : process.env.AMQP_JWT_TOKEN
             },

@@ -1,36 +1,32 @@
-import { ReceiveMessageCommand, DeleteMessageCommand, SQSClient, DeleteMessageBatchCommand } from "@aws-sdk/client-sqs";
+import Pull from './pull-amqp-queue.mjs';
 import { pushTimeseries } from "prometheus-remote-write";
 
-const sqsClient = new SQSClient({});
-
 (async function pullEnvPm() {
+    
+    let pull = new Pull(process.env.AMQP_ENV_PM_QUEUE, null, { timeout : 5000, count : 60 });
+    let qChannel = await pull.connect();
+    
+    console.log("Connected to queue:", process.env.AMQP_ENV_PM_QUEUE);
 
     while (true) {        
         let deviceMetrics = {
         };
         let deviceLocation = {
         };
-
-        let result = await sqsClient.send(new ReceiveMessageCommand({
-            MaxNumberOfMessages: 10,
-            QueueUrl: process.env.SQS_ENV_PM_URL,
-            WaitTimeSeconds: 20,
-            VisibilityTimeout: 20
-        }));
-
-        let messages = result.Messages;
-
-        if (!messages) {
-            continue;
-        }
+        
+        let messages = await pull.batch.get(); 
 
         for (let message of messages) {
-            let envPmMessages = JSON.parse(message.Body);
+            let envPmMessageOrMultiple = JSON.parse(message.content.toString());
+            let messages = [];
 
-	    console.log(envPmMessages);
+            if (typeof envPmMessageOrMultiple.forEach == "function") {
+                messages = envPmMessageOrMultiple;
+            } else {
+                messages = [envPmMessageOrMultiple];
+            }
 
-            for (let envPmMessage of envPmMessages) {
-
+            for (let envPmMessage in messages) {
                 let deviceId = envPmMessage.id;
 
                 if (!deviceMetrics[deviceId]) {
@@ -48,14 +44,12 @@ const sqsClient = new SQSClient({});
                 deviceMetrics[deviceId]['env_pressure'].push({value : envPmMessage.pressure, timestamp : envPmMessage.ts });
                 deviceMetrics[deviceId]['env_pm_obstructed'].push({value : (envPmMessage.flags || {}).obstructed ? 1 : 0, timestamp : envPmMessage.ts });
                 deviceLocation[deviceId] = envPmMessage.location;
-
             }
         }
 
         for (let deviceId in deviceMetrics) {
             if (deviceMetrics.hasOwnProperty(deviceId)) {
                 for (let metricName in deviceMetrics[deviceId]) {
-		    console.log("ENV PM:", metricName);
                     if (deviceMetrics[deviceId].hasOwnProperty(metricName) && deviceMetrics[deviceId][metricName].length > 0) {
                         let pushRs = await pushTimeseries(
                             {
@@ -72,7 +66,8 @@ const sqsClient = new SQSClient({});
                                 url : process.env.PROMETHEUS_RW_URL,
                                 fetch : fetch,
                                 headers: {
-                                    "X-Scope-OrgID": process.env.ACS_ORG_ID
+                                    "X-Scope-OrgID": process.env.ACS_ORG_ID,
+                                    "X-Api-Token": process.env.PROMETHEUS_JWT_TOKEN
                                 }
                             }
                         );
@@ -86,15 +81,9 @@ const sqsClient = new SQSClient({});
         }
 
         if (messages.length) {
-            await sqsClient.send(new DeleteMessageBatchCommand({
-                QueueUrl: process.env.SQS_ENV_PM_URL,
-                Entries : messages.map(function (message) {
-                    return {
-                        Id : message.MessageId,
-                        ReceiptHandle : message.ReceiptHandle
-                    }
-                })
-            }));
+            messages.forEach(function (msg) {
+                qChannel.ack(msg);
+            });
         }
 
         console.log("Processed", messages.length);
@@ -115,6 +104,6 @@ function envPmMetrics() {
         "env_temperature" : [],
         "env_relative_humidity" : [],
         "env_pressure" : [],
-	"env_pm_obstructed": []
+        "env_pm_obstructed": []
     };
 }

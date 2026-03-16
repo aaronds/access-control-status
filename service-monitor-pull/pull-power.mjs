@@ -1,31 +1,31 @@
-import { ReceiveMessageCommand, DeleteMessageCommand, SQSClient, DeleteMessageBatchCommand } from "@aws-sdk/client-sqs";
+import Pull from './pull-amqp-queue.mjs';
 import { pushTimeseries } from "prometheus-remote-write";
 
-const sqsClient = new SQSClient({});
-
 (async function pullMode() {
+
+    let pull = new Pull(process.env.AMQP_POWER_QUEUE, null, { timeout : 5000, count : 60 });
+
+    let qChannel = await pull.connect();
+
+    console.log("Connected to queue:", process.env.AMQP_POWER_QUEUE);
 
     while (true) {        
         let deviceMetrics = {
         };
-
-        let result = await sqsClient.send(new ReceiveMessageCommand({
-            MaxNumberOfMessages: 10,
-            QueueUrl: process.env.SQS_POWER_URL,
-            WaitTimeSeconds: 20,
-            VisibilityTimeout: 20
-        }));
-
-        let messages = result.Messages;
-
-        if (!messages) {
-            continue;
-        }
+        
+        let messages = await pull.batch.get(); 
 
         for (let message of messages) {
-            let powerMessages = JSON.parse(message.Body);
+            let powerMessageOrMultiple = JSON.parse(message.content.toString());
+            let messages = [];
 
-            for (let powerMessage of powerMessages) {
+            if (typeof powerMessageOrMultiple.forEach == "function") {
+                messages = powerMessageOrMultiple;
+            } else {
+                messages = [powerMessageOrMultiple];
+            }
+
+            for (let powerMessage in messages) {
 
                 let deviceId = powerMessage.id;
 
@@ -40,7 +40,6 @@ const sqsClient = new SQSClient({});
                 deviceMetrics[deviceId]['acs_metric_sampleTime'].push({value : powerMessage.time, timestamp : powerMessage.ts });
                 deviceMetrics[deviceId]['acs_metric_zx'].push({value : powerMessage.zx, timestamp : powerMessage.ts });
                 deviceMetrics[deviceId]['acs_metric_currentMax'].push({value : powerMessage.currentMax, timestamp : powerMessage.ts });
-
             }
         }
 
@@ -62,7 +61,8 @@ const sqsClient = new SQSClient({});
                                 url : process.env.PROMETHEUS_RW_URL,
                                 fetch : fetch,
                                 headers: {
-                                    "X-Scope-OrgID": process.env.ACS_ORG_ID
+                                    "X-Scope-OrgID": process.env.ACS_ORG_ID,
+                                    "X-Api-Token": process.env.PROMETHEUS_JWT_TOKEN
                                 }
                             }
                         );
@@ -76,15 +76,9 @@ const sqsClient = new SQSClient({});
         }
 
         if (messages.length) {
-            await sqsClient.send(new DeleteMessageBatchCommand({
-                QueueUrl: process.env.SQS_POWER_URL,
-                Entries : messages.map(function (message) {
-                    return {
-                        Id : message.MessageId,
-                        ReceiptHandle : message.ReceiptHandle
-                    }
-                })
-            }));
+            messages.forEach(function (msg) {
+                qChannel.ack(msg);
+            });
         }
 
         console.log("Processed", messages.length);

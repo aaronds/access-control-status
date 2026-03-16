@@ -2,11 +2,8 @@ import Pull from './pull-amqp-queue.mjs';
 import { pushTimeseries } from "prometheus-remote-write";
 
 (async function pullMode() {
-    let pull = null,
-        batch = null;
 
-    pull = new Pull(process.env.AMQP_MODE_QUEUE,null, { timeout : 5000, count : 20 });
-
+    let pull = new Pull(process.env.AMQP_MODE_QUEUE,null, { timeout : 5000, count : 60 });
     let qChannel = await pull.connect();
 
     console.log("Connected to queue:", process.env.AMQP_MODE_QUEUE);
@@ -22,17 +19,27 @@ import { pushTimeseries } from "prometheus-remote-write";
         }
 
         for (let message of messages) {
-            let modeMessage = JSON.parse(message.content.toString());
+            let modeMessageOrMultiple = JSON.parse(message.content.toString());
+            let messages = [];
 
-            let deviceId = modeMessage.id;
-
-            if (!deviceMetrics[deviceId]) {
-                deviceMetrics[deviceId] = modeMetrics();
+            if (typeof modeMessageOrMultiple.forEach == "function") {
+                messages = modeMessageOrMultiple;
+            } else {
+                messages = [modeMessageOrMultiple];
             }
 
-            deviceMetrics[deviceId]['acs_metric_unlocked'].push({value : ['CONTROLLER_MODE_UNLOCKED', 'CONTROLLER_MODE_IN_USE'].indexOf(modeMessage.mode) >= 0 ? 1 : 0, timestamp : modeMessage.ts });
-            deviceMetrics[deviceId]['acs_metric_inUse'].push({value : ['CONTROLLER_MODE_IN_USE'].indexOf(modeMessage.mode) >= 0 ? 1 : 0, timestamp : modeMessage.ts });
-            deviceMetrics[deviceId]['acs_metric_energyTotal'].push({value : (modeMessage.energyTotal || 0), timestamp : modeMessage.ts });
+            for (let modeMessage in messages) {
+
+                let deviceId = modeMessage.id;
+
+                if (!deviceMetrics[deviceId]) {
+                    deviceMetrics[deviceId] = modeMetrics();
+                }
+
+                deviceMetrics[deviceId]['acs_metric_unlocked'].push({value : ['CONTROLLER_MODE_UNLOCKED', 'CONTROLLER_MODE_IN_USE'].indexOf(modeMessage.mode) >= 0 ? 1 : 0, timestamp : modeMessage.ts });
+                deviceMetrics[deviceId]['acs_metric_inUse'].push({value : ['CONTROLLER_MODE_IN_USE'].indexOf(modeMessage.mode) >= 0 ? 1 : 0, timestamp : modeMessage.ts });
+                deviceMetrics[deviceId]['acs_metric_energyTotal'].push({value : (modeMessage.energyTotal || 0), timestamp : modeMessage.ts });
+            }
         }
 
         for (let deviceId in deviceMetrics) {

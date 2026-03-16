@@ -201,11 +201,19 @@ async function sendMessages(qChannel, queueName, messageArray) {
     let rv = true;
     
     try {
+        
+        let toSend = messageArray.splice(0,Math.min(messageArray.length, 200));
+        rv = qChannel.sendToQueue(queueName, Buffer.from(JSON.stringify(toSend)));
+        sendCount+= toSend.length;
+
+        /*
         while (rv && messageArray.length) {
             let next = messageArray.shift();
             rv = qChannel.sendToQueue(queueName, Buffer.from(JSON.stringify(next)));
             sendCount++;
         }
+        */
+
     } catch (e) {
         console.log(e, e.stack);
         return 0;
